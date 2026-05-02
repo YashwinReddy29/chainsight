@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChainSight — AI Code Supply Chain Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0b0b0e;color:#d4d4d8;min-height:100vh}
+.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 28px;height:52px;display:flex;align-items:center;gap:12px}
+.logo{font-size:16px;font-weight:600;color:#f4f4f5}
+.badge{font-size:10px;background:#1a1a2e;color:#818cf8;border:1px solid #312e81;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.08em}
+.ibm{margin-left:auto;font-size:11px;color:#71717a}
+.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.main{padding:28px;max-width:1200px;margin:0 auto}
+.ph{margin-bottom:24px}
+.ph h1{font-size:20px;font-weight:500;color:#f4f4f5;margin-bottom:4px}
+.ph p{font-size:13px;color:#71717a}
+.banner{background:linear-gradient(135deg,#1a0a2e,#0a0a1e);border:1px solid #312e81;border-radius:10px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.bicon{width:32px;height:32px;background:#1e1040;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.btext{font-size:12px;color:#818cf8;line-height:1.5}
+.btext strong{color:#c7d2fe}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.card{background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:18px 20px}
+.clabel{font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.cval{font-size:30px;font-weight:500;color:#f4f4f5}
+.cval.pass{color:#22c55e}.cval.warn{color:#eab308}.cval.fail{color:#ef4444}.cval.blind{color:#a78bfa}
+.csub{font-size:11px;color:#71717a;margin-top:6px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.st{font-size:13px;font-weight:500;color:#a1a1aa;text-transform:uppercase;letter-spacing:.06em}
+.rbtn{font-size:12px;color:#71717a;background:none;border:1px solid #1e1e28;padding:4px 12px;border-radius:5px;cursor:pointer}
+.rbtn:hover{color:#f4f4f5;border-color:#3f3f46}
+table{width:100%;border-collapse:collapse;background:#111116;border:1px solid #1e1e28;border-radius:10px;overflow:hidden;font-size:13px}
+thead{background:#0f0f14}
+th{text-align:left;padding:10px 16px;font-weight:500;font-size:11px;color:#71717a;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #1e1e28}
+td{padding:12px 16px;border-bottom:1px solid #18181c;color:#a1a1aa;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#14141a}
+.bp{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500;text-transform:uppercase}
+.bp.pass{background:#052e16;color:#22c55e;border:1px solid #166534}
+.bp.warn{background:#1c1700;color:#eab308;border:1px solid #713f12}
+.bp.fail{background:#1c0303;color:#ef4444;border:1px solid #7f1d1d}
+.blind-badge{background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.sid{font-family:monospace;font-size:12px;color:#6366f1}
+.nodata{text-align:center;padding:48px;color:#52525b;font-size:13px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">ChainSight</div>
+  <div class="badge">IBM Bob Hackathon 2026</div>
+  <div class="ibm">Powered by IBM Bob + watsonx</div>
+  <div class="dot" id="dot"></div>
+</div>
+<div class="main">
+  <div class="ph">
+    <h1>AI-Generated Code Supply Chain Monitor</h1>
+    <p>Every IBM Bob session — tracked, scanned, and SBOM-compliant.</p>
+  </div>
+  <div class="banner">
+    <div class="bicon">⚡</div>
+    <div class="btext">
+      <strong>EU Cyber Resilience Act SBOM deadline: August 2, 2026.</strong>
+      ChainSight generates CycloneDX 1.6 SBOMs for every Bob session. Bob blind spots (CVEs unknown at generation time) flagged in purple.
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="clabel">Sessions scanned</div><div class="cval" id="m-sessions">—</div><div class="csub">Bob IDE sessions</div></div>
+    <div class="card"><div class="clabel">CVEs detected</div><div class="cval fail" id="m-cves">—</div><div class="csub">Across all components</div></div>
+    <div class="card"><div class="clabel">Bob blind spots</div><div class="cval blind" id="m-blind">—</div><div class="csub">Unknown at generation</div></div>
+    <div class="card"><div class="clabel">Overall posture</div><div class="cval" id="m-posture">—</div><div class="csub">Compliance status</div></div>
+  </div>
+  <div class="sh">
+    <div class="st">Session audit log</div>
+    <button class="rbtn" onclick="load()">↻ Refresh</button>
+  </div>
+  <div id="tbl"><div class="nodata">Loading...</div></div>
+</div>
+<script>
+const API = 'http://localhost:8080';
+async function load() {
+  try {
+    const hr = await fetch(API+'/health',{signal:AbortSignal.timeout(3000)});
+    document.getElementById('dot').style.background = hr.ok ? '#22c55e' : '#ef4444';
+  } catch { document.getElementById('dot').style.background = '#ef4444'; }
+  try {
+    const r = await fetch(API+'/sessions',{signal:AbortSignal.timeout(8000)});
+    if(!r.ok) throw new Error(r.status);
+    const s = await r.json();
+    document.getElementById('m-sessions').textContent = s.length || '0';
+    document.getElementById('m-cves').textContent = s.reduce((a,r)=>a+(r.vulnerability_count||0),0);
+    document.getElementById('m-blind').textContent = s.reduce((a,r)=>a+(r.post_cutoff_cves||0),0);
+    const ps = s.map(r=>r.compliance_posture||'');
+    const op = ps.includes('FAIL')?'FAIL':ps.includes('WARN')?'WARN':s.length?'PASS':'—';
+    const pe = document.getElementById('m-posture');
+    pe.textContent = op;
+    pe.className = 'cval '+(op==='FAIL'?'fail':op==='WARN'?'warn':op==='PASS'?'pass':'');
+    if(!s.length){document.getElementById('tbl').innerHTML='<div class="nodata">No sessions yet. Generate code in Bob and run /sbom</div>';return;}
+    const rows = s.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(x=>{
+      const p=(x.compliance_posture||'UNKNOWN').toLowerCase();
+      const b=x.post_cutoff_cves||0;
+      return `<tr>
+        <td><span class="sid">${(x.session_id||'').substring(0,12)}...</span></td>
+        <td>${x.timestamp?new Date(x.timestamp).toLocaleString():'—'}</td>
+        <td>${x.component_count||0}</td>
+        <td>${x.vulnerability_count||0}</td>
+        <td>${b>0?`<span class="blind-badge">${b} blind</span>`:'<span style="color:#52525b">0</span>'}</td>
+        <td><span class="bp ${p}">${(x.compliance_posture||'UNKNOWN')}</span></td>
+        <td><button onclick="view('${x.session_id}')" style="font-size:11px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline">View</button></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('tbl').innerHTML=`<table>
+      <thead><tr><th>Session ID</th><th>Timestamp</th><th>Components</th><th>CVEs</th><th>Blind Spots</th><th>Posture</th><th>SBOM</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  } catch(e) {
+    document.getElementById('tbl').innerHTML=`<div class="nodata">Cannot connect to engine at ${API}<br><br>Start it: cd ~/chainsight/sbom-engine && source venv/bin/activate && uvicorn main:app --port 8080</div>`;
+  }
+}
+load();
+setInterval(load,15000);
+async function view(id){
+  try{const r=await fetch(`${API}/session/${id}`);const d=await r.json();const w=window.open('','_blank');w.document.write(`<pre style="background:#0b0b0e;color:#d4d4d8;padding:20px;font-family:monospace;font-size:12px">${JSON.stringify(d,null,2)}</pre>`);}
+  catch(e){alert('Could not load: '+e.message);}
+}
+</script>
+</body>
+</html>
