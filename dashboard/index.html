@@ -78,7 +78,7 @@ tr:hover td{background:#14141a}
   <div id="tbl"><div class="nodata">Loading...</div></div>
 </div>
 <script>
-const API = 'http://localhost:8080';
+const API = 'http://192.168.133.238:8080';
 async function load() {
   try {
     const hr = await fetch(API+'/health',{signal:AbortSignal.timeout(3000)});
