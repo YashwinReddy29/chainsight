@@ -1,0 +1,805 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:fb2cf671-149a-4fa5-a985-1993b33cd56e",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-02T23:37:39.994526+00:00",
+    "tools": [
+      {
+        "vendor": "IBM",
+        "name": "Bob",
+        "version": "1.0"
+      },
+      {
+        "vendor": "ChainSight",
+        "name": "ChainSight SBOM Engine",
+        "version": "1.0.0"
+      }
+    ],
+    "properties": [
+      {
+        "name": "chainsight:session-id",
+        "value": "demo-final"
+      },
+      {
+        "name": "chainsight:generation-method",
+        "value": "AI-assisted (IBM Bob)"
+      },
+      {
+        "name": "chainsight:training-cutoff",
+        "value": "2024-11-01"
+      },
+      {
+        "name": "chainsight:sbom-type",
+        "value": "AI-Generated Code SBOM"
+      },
+      {
+        "name": "ai:tool-name",
+        "value": "IBM Bob"
+      },
+      {
+        "name": "ai:regulation-compliance",
+        "value": "EU-AI-Act-Article-11,US-EO-14028"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "python-jose@3.3.0",
+      "name": "python-jose",
+      "version": "3.3.0",
+      "purl": "pkg:pypi/python-jose@3.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "1"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "python-multipart@0.0.9",
+      "name": "python-multipart",
+      "version": "0.0.9",
+      "purl": "pkg:pypi/python-multipart@0.0.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastapi@0.109.2",
+      "name": "fastapi",
+      "version": "0.109.2",
+      "purl": "pkg:pypi/fastapi@0.109.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "passlib@1.7.4",
+      "name": "passlib",
+      "version": "1.7.4",
+      "purl": "pkg:pypi/passlib@1.7.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "bcrypt@4.1.2",
+      "name": "bcrypt",
+      "version": "4.1.2",
+      "purl": "pkg:pypi/bcrypt@4.1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "sqlalchemy@2.0.27",
+      "name": "sqlalchemy",
+      "version": "2.0.27",
+      "purl": "pkg:pypi/sqlalchemy@2.0.27",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "psycopg2-binary@2.9.9",
+      "name": "psycopg2-binary",
+      "version": "2.9.9",
+      "purl": "pkg:pypi/psycopg2-binary@2.9.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-only"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pydantic@2.6.1",
+      "name": "pydantic",
+      "version": "2.6.1",
+      "purl": "pkg:pypi/pydantic@2.6.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "uvicorn@0.27.1",
+      "name": "uvicorn",
+      "version": "0.27.1",
+      "purl": "pkg:pypi/uvicorn@0.27.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "python-dotenv@1.0.1",
+      "name": "python-dotenv",
+      "version": "1.0.1",
+      "purl": "pkg:pypi/python-dotenv@1.0.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "demo-final"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "JWT authentication using jose"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "bom-ref": "vuln-GHSA-6c5p-j8vq-pqhj-python-jose",
+      "id": "GHSA-6c5p-j8vq-pqhj",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-6c5p-j8vq-pqhj"
+      },
+      "description": "Algorithm confusion with OpenSSH ECDSA keys",
+      "published": "2024-09-03T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-jose@3.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "false"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "KNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "Bob was trained with knowledge of this CVE"
+        }
+      ],
+      "recommendation": "Upgrade python-jose to 4.0.0 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-59g5-xgcq-4qw3-python-multipart",
+      "id": "GHSA-59g5-xgcq-4qw3",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-59g5-xgcq-4qw3"
+      },
+      "description": "DoS via malformed multipart",
+      "published": "2025-01-15T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "75"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: published 75 days after training cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-wp53-j4wj-2cfg-python-multipart",
+      "id": "GHSA-wp53-j4wj-2cfg",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-wp53-j4wj-2cfg"
+      },
+      "description": "Arbitrary file write",
+      "published": "2026-01-26T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "451"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: published 451 days after training cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    }
+  ]
+}
