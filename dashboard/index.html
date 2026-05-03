@@ -263,16 +263,38 @@ async function loadSessions() {
 }
 
 async function runLatestDiff() {
-  document.getElementById('diff-result').innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Loading latest diff...</div>';
+  document.getElementById('diff-result').innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Finding most dramatic comparison...</div>';
   try {
-    const r=await fetch(API+'/diff/latest');
+    const sr = await fetch(API+'/sessions');
+    const sessions = await sr.json();
+    if(sessions.length < 2) throw new Error('Need at least 2 sessions');
+    sessions.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+    const fails = sessions.filter(s=>s.compliance_posture==='FAIL' && (s.post_cutoff_cves||0)>0);
+    const passes = sessions.filter(s=>s.compliance_posture==='PASS');
+    let oldId, newId;
+    if(fails.length>0 && passes.length>0) {
+      const worst = fails.sort((a,b)=>b.post_cutoff_cves-a.post_cutoff_cves)[0];
+      const best = passes[passes.length-1];
+      if(new Date(worst.timestamp)>new Date(best.timestamp)) {
+        oldId=best.session_id; newId=worst.session_id;
+      } else {
+        oldId=worst.session_id; newId=best.session_id;
+      }
+    } else if(fails.length>=2) {
+      fails.sort((a,b)=>a.post_cutoff_cves-b.post_cutoff_cves);
+      oldId=fails[0].session_id; newId=fails[fails.length-1].session_id;
+    } else {
+      oldId=sessions[0].session_id; newId=sessions[sessions.length-1].session_id;
+    }
+    document.getElementById('diff-old').value=oldId;
+    document.getElementById('diff-new').value=newId;
+    const r=await fetch(`${API}/diff/${oldId}/${newId}`);
     if(!r.ok) throw new Error(await r.text());
     renderDiff(await r.json());
   } catch(e) {
     document.getElementById('diff-result').innerHTML=`<div style="color:#ef4444;font-size:12px;padding:12px">Error: ${e.message}</div>`;
   }
 }
-
 async function runDiff() {
   const o=document.getElementById('diff-old').value.trim();
   const n=document.getElementById('diff-new').value.trim();
