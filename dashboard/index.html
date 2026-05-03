@@ -264,7 +264,9 @@ async function loadSessions() {
 }
 
 async function runLatestDiff() {
-  document.getElementById('diff-result').innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Finding most dramatic comparison...</div>';
+  const diffEl = document.getElementById('diff-result');
+  diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Finding most dramatic comparison...</div>';
+  setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
   try {
     const sr = await fetch(API+'/sessions');
     const sessions = await sr.json();
@@ -289,11 +291,14 @@ async function runLatestDiff() {
     }
     document.getElementById('diff-old').value=oldId;
     document.getElementById('diff-new').value=newId;
-    const r=await fetch(`${API}/diff/${oldId}/${newId}`);
+    diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Comparing '+oldId+' → '+newId+'...</div>';
+    const r=await fetch(API+'/diff/'+oldId+'/'+newId);
     if(!r.ok) throw new Error(await r.text());
     renderDiff(await r.json());
+    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 100);
   } catch(e) {
-    document.getElementById('diff-result').innerHTML=`<div style="color:#ef4444;font-size:12px;padding:12px">Error: ${e.message}</div>`;
+    diffEl.innerHTML='<div style="color:#ef4444;font-size:12px;padding:12px">Error: '+e.message+'</div>';
+    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
   }
 }
 async function runDiff() {
