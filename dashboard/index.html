@@ -249,10 +249,14 @@ async function loadSessions() {
         <td style="text-align:center;color:${s.vulnerability_count?'#f87171':'#52525b'}">${s.vulnerability_count||0}</td>
         <td style="text-align:center">${b>0?`<span class="bb">👁 ${b} blind spot${b>1?'s':''}</span>`:'<span style="color:#22c55e;font-size:11px">✓ none</span>'}</td>
         <td><span class="bp ${p}">${s.compliance_posture||'?'}</span></td>
-        <td style="font-size:10px">${b>0?'<span style="color:#a78bfa;font-weight:500">BOB BLIND SPOT</span>':p==='warn'?'<span style="color:#eab308">Review needed</span>':'<span style="color:#22c55e">Clean</span>'}</td>
+        <td style="font-size:10px">${b>0?'<span style="color:#a78bfa;font-weight:500">BOB BLIND SPOT</span> <button onclick="getFix('' + s.session_id + '')" style="font-size:9px;background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:1px 6px;border-radius:3px;cursor:pointer;margin-left:4px">Auto-fix →</button>':p==='warn'?'<span style="color:#eab308">Review needed</span>':'<span style="color:#22c55e">Clean</span>'}</td>
+        <td style="white-space:nowrap">
+          ${b>0 ? '<button onclick="getFix(\''+s.session_id+'\')" style="font-size:9px;background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">Auto-fix</button>' : ''}
+          <a href="http://192.168.133.238:8080/report/${s.session_id}/pdf" target="_blank" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;text-decoration:none">PDF</a>
+        </td>
       </tr>`;
     }).join('');
-    document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Bob Session ID</th><th>Timestamp</th><th style="text-align:center">Deps</th><th style="text-align:center">CVEs</th><th style="text-align:center">Bob Blind Spots</th><th>Posture</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById('tbl').innerHTML=`<table><thead><tr><th>Bob Session ID</th><th>Timestamp</th><th style="text-align:center">Deps</th><th style="text-align:center">CVEs</th><th style="text-align:center">Bob Blind Spots</th><th>Posture</th><th>Status</th><th>Actions</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
   } catch(e) {
     document.getElementById('tbl').innerHTML=`<div class="nodata">Cannot connect to engine at ${API}<br><code>uvicorn main:app --host 0.0.0.0 --port 8080</code></div>`;
   }
@@ -331,6 +335,34 @@ function renderDiff(d) {
     </div>`;
 }
 
+async function getFix(sid) {
+  const res = document.getElementById('diff-result');
+  res.scrollIntoView({behavior:'smooth'});
+  res.innerHTML = '<div style="color:#71717a;padding:12px;font-size:12px">Generating auto-fix for ' + sid + '...</div>';
+  try {
+    const r = await fetch('http://192.168.133.238:8080/fix/' + sid);
+    const d = await r.json();
+    if(!d.fixes || d.fixes.length === 0) {
+      res.innerHTML = '<div class="diff-card" style="color:#22c55e;padding:12px">No blind spots to fix in session ' + sid + '</div>';
+      return;
+    }
+    let html = '<div class="diff-card"><div style="font-size:13px;font-weight:600;color:#a78bfa;margin-bottom:12px">Auto-Fix — Session ' + sid + '</div>';
+    d.fixes.forEach(function(fix) {
+      html += '<div style="background:#0a0818;border:1px solid #4c1d95;border-radius:8px;padding:12px;margin-bottom:8px">';
+      html += '<div style="font-size:12px;font-weight:600;color:#c084fc">' + fix.package + '</div>';
+      html += '<div style="font-size:11px;color:#71717a;margin-top:4px">' + fix.current_version + ' → <span style="color:#4ade80;font-weight:600">' + fix.fixed_version + '</span></div>';
+      html += '<div style="font-size:10px;color:#a78bfa;margin-top:2px">Fixes: ' + fix.vulns_fixed.join(', ') + '</div>';
+      html += '<div style="font-size:10px;color:#52525b;margin-top:2px">' + fix.days_after_cutoff + ' days after Bob training cutoff</div>';
+      html += '<div style="background:#060f06;border:1px solid #166534;border-radius:4px;padding:6px 10px;margin-top:8px;font-family:monospace;font-size:11px;color:#4ade80">' + fix.action + '</div>';
+      html += '</div>';
+    });
+    html += '<div style="margin-top:12px"><a href="http://192.168.133.238:8080/report/' + sid + '/pdf" target="_blank" style="background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:7px 16px;border-radius:6px;font-size:12px;text-decoration:none">Download PDF Compliance Report</a></div>';
+    html += '</div>';
+    res.innerHTML = html;
+  } catch(e) {
+    res.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:12px">Error: ' + e.message + '</div>';
+  }
+}
 initCharts();
 loadSessions();
 setInterval(loadSessions,15000);

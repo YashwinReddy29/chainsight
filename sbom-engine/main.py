@@ -149,3 +149,76 @@ async def diff_latest_sessions():
     new = sorted_sessions[-1]['session_id']
     diff = diff_sboms(old, new)
     return diff
+
+
+# ─── Auto-Fix endpoints ───────────────────────────────────────────────────────
+
+from auto_fix import generate_fixes, generate_fixed_requirements, generate_remediation_report
+
+@app.get('/fix/{session_id}')
+async def get_fixes(session_id: str):
+    """Generate automatic fix recommendations for a session's blind spots."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes = generate_fixes(sbom)
+    return fixes
+
+@app.get('/fix/{session_id}/report')
+async def get_fix_report(session_id: str):
+    """Get markdown remediation report for a session."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes = generate_fixes(sbom)
+    report = generate_remediation_report(session_id, fixes)
+    return {'session_id': session_id, 'report': report, 'fixes': fixes}
+
+@app.post('/fix/{session_id}/apply')
+async def apply_fixes(session_id: str, requirements_content: str = ''):
+    """Apply fixes to a requirements.txt and return the patched version."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes_data = generate_fixes(sbom)
+    if not requirements_content:
+        return {'error': 'No requirements content provided', 'fixes': fixes_data}
+    patched = generate_fixed_requirements(requirements_content, fixes_data['fixes'])
+    return {
+        'session_id': session_id,
+        'original': requirements_content,
+        'patched': patched,
+        'fixes_applied': fixes_data['total_fixes'],
+        'fixes': fixes_data['fixes']
+    }
+
+
+# ─── PDF Report endpoint ──────────────────────────────────────────────────────
+
+from fastapi.responses import Response
+from pdf_report import generate_pdf_report
+from auto_fix import generate_fixes
+
+@app.get('/report/{session_id}/pdf')
+async def get_pdf_report(session_id: str):
+    """Generate and download a PDF compliance report for a session."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes = generate_fixes(sbom)
+    pdf_bytes = generate_pdf_report(session_id, sbom, fixes)
+    if not pdf_bytes:
+        raise HTTPException(status_code=500, detail='PDF generation failed — install reportlab')
+    return Response(
+        content=pdf_bytes,
+        media_type='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="chainsight-{session_id}.pdf"'}
+    )
