@@ -136,6 +136,22 @@ tr.blind-row td{background:#0d0a1a}
     <div class="cc"><div class="ct">Compliance posture timeline</div><div class="cs">Risk trend across Bob sessions</div><div class="ch"><canvas id="ptChart"></canvas></div></div>
   </div>
 
+  <!-- Compliance Score Trending -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px">
+    <div class="cc">
+      <div class="ct">Compliance Score Trending</div>
+      <div class="cs">0-100 score per Bob session (100 = perfect, 0 = critical failure)</div>
+      <div class="ch"><canvas id="scoreChart"></canvas></div>
+    </div>
+    <div class="cc">
+      <div class="ct">Package Risk Heatmap</div>
+      <div class="cs">Highest risk packages across all sessions</div>
+      <div style="max-height:160px;overflow-y:auto" id="heatmap-list">
+        <div style="color:#52525b;font-size:11px;padding:8px">Loading...</div>
+      </div>
+    </div>
+  </div>
+
   <div class="hook">
     <div style="font-size:18px">🔒</div>
     <div class="hook-text">
@@ -537,6 +553,91 @@ async function getFix(sid) {
     res.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:12px">Error: ' + e.message + '</div>';
   }
 }
+  let scoreChart;
+  const scoreChartEl = document.getElementById('scoreChart');
+  if (scoreChartEl) {
+    scoreChart = new Chart(scoreChartEl, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Compliance Score',
+          data: [],
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.1)',
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: [],
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#71717a', font: { size: 10 } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => `Score: ${ctx.raw}/100 (${ctx.raw >= 90 ? 'A' : ctx.raw >= 80 ? 'B' : ctx.raw >= 70 ? 'C' : ctx.raw >= 60 ? 'D' : 'F'})`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#52525b', font: { size: 9 } }, grid: { color: '#1e1e28' } },
+          y: {
+            min: 0, max: 100,
+            ticks: { color: '#52525b', font: { size: 9 }, callback: v => v + '%' },
+            grid: { color: '#1e1e28' }
+          }
+        }
+      }
+    });
+  }
+
+  // Load compliance scores and heatmap
+  async function loadScores() {
+    try {
+      const [sr, hr] = await Promise.all([
+        fetch(API + '/scores'),
+        fetch(API + '/heatmap')
+      ]);
+      const scores = await sr.json();
+      const heatmap = await hr.json();
+
+      if (scoreChart && scores.length > 0) {
+        scoreChart.data.labels = scores.map(s => s.session_id.substring(0,8) + '...');
+        scoreChart.data.datasets[0].data = scores.map(s => s.compliance_score);
+        scoreChart.data.datasets[0].pointBackgroundColor = scores.map(s =>
+          s.compliance_score >= 80 ? '#22c55e' :
+          s.compliance_score >= 60 ? '#eab308' : '#ef4444'
+        );
+        scoreChart.data.datasets[0].pointBorderColor = scoreChart.data.datasets[0].pointBackgroundColor;
+        scoreChart.update('none');
+      }
+
+      const heatmapEl = document.getElementById('heatmap-list');
+      if (heatmapEl && heatmap.packages) {
+        const top = heatmap.packages.slice(0, 10);
+        const maxScore = top[0]?.risk_score || 1;
+        heatmapEl.innerHTML = top.map(p => {
+          const pct = Math.round((p.risk_score / maxScore) * 100);
+          const color = p.total_blind > 0 ? '#a78bfa' : p.risk_score > 5 ? '#f97316' : p.risk_score > 0 ? '#eab308' : '#22c55e';
+          return `<div style="padding:5px 0;border-bottom:1px solid #1e1e28">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+              <span style="font-size:10px;color:#f4f4f5;font-family:monospace">${p.package}</span>
+              <span style="font-size:9px;color:${color};font-weight:600">${p.total_blind > 0 ? '👁 ' : ''}${p.risk_score}</span>
+            </div>
+            <div style="height:4px;background:#1e1e28;border-radius:2px">
+              <div style="height:4px;background:${color};border-radius:2px;width:${pct}%;transition:width .3s"></div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+    } catch(e) {}
+  }
+  loadScores();
+  setInterval(loadScores, 15000);
 initCharts();
 loadSessions();
 setInterval(loadSessions,15000);

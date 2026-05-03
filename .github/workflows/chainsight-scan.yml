@@ -1,0 +1,159 @@
+name: ChainSight Supply Chain Scan
+
+on:
+  push:
+    paths:
+      - '**/requirements.txt'
+      - '**/package.json'
+  pull_request:
+    paths:
+      - '**/requirements.txt'
+      - '**/package.json'
+
+jobs:
+  chainsight-scan:
+    runs-on: ubuntu-latest
+    name: Bob Blind Spot Scan
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ChainSight scanner
+        run: pip install requests
+
+      - name: Run ChainSight blind spot scan
+        id: scan
+        run: |
+          python3 << 'PYEOF'
+          import re, json, sys
+          import urllib.request
+          from datetime import date
+
+          CUTOFF = date(2024, 11, 1)
+
+          # Find all requirements.txt files
+          import subprocess
+          result = subprocess.run(['find', '.', '-name', 'requirements.txt',
+                                   '-not', '-path', '*/venv/*',
+                                   '-not', '-path', '*/.git/*'],
+                                  capture_output=True, text=True)
+          req_files = result.stdout.strip().split('\n')
+
+          all_packages = []
+          for req_file in req_files:
+              if not req_file:
+                  continue
+              try:
+                  with open(req_file) as f:
+                      for line in f:
+                          line = line.strip()
+                          if not line or line.startswith('#'):
+                              continue
+                          m = re.match(r'^([\w.-]+)==([\d.]+)', line)
+                          if m:
+                              all_packages.append({
+                                  'name': m.group(1),
+                                  'version': m.group(2),
+                                  'ecosystem': 'PyPI'
+                              })
+              except Exception:
+                  pass
+
+          if not all_packages:
+              print("No packages found to scan")
+              sys.exit(0)
+
+          print(f"Scanning {len(all_packages)} packages for Bob blind spots...")
+
+          # Query OSV.dev
+          queries = [{'package': {'name': p['name'], 'ecosystem': p['ecosystem']},
+                      'version': p['version']} for p in all_packages]
+
+          body = json.dumps({'queries': queries}).encode()
+          req = urllib.request.Request(
+              'https://api.osv.dev/v1/querybatch',
+              data=body,
+              headers={'Content-Type': 'application/json'}
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              osv = json.loads(r.read())
+
+          results = osv.get('results', [])
+          blind_spots = []
+          all_cves = []
+
+          for i, pkg in enumerate(all_packages):
+              vulns = results[i].get('vulns', []) if i < len(results) else []
+              for v in vulns:
+                  published = v.get('published', '')[:10]
+                  is_blind = False
+                  days_after = 0
+                  if published:
+                      try:
+                          pub = date.fromisoformat(published)
+                          is_blind = pub > CUTOFF
+                          if is_blind:
+                              days_after = (pub - CUTOFF).days
+                      except Exception:
+                          pass
+                  entry = {
+                      'id': v.get('id', ''),
+                      'package': pkg['name'],
+                      'version': pkg['version'],
+                      'published': published,
+                      'is_blind': is_blind,
+                      'days_after': days_after
+                  }
+                  all_cves.append(entry)
+                  if is_blind:
+                      blind_spots.append(entry)
+
+          print(f"\nTotal CVEs found: {len(all_cves)}")
+          print(f"Bob blind spots: {len(blind_spots)}")
+
+          if blind_spots:
+              print("\n=== BOB BLIND SPOTS DETECTED ===")
+              for b in blind_spots:
+                  print(f"  BLIND: {b['id']} in {b['package']}=={b['version']}")
+                  print(f"         Published {b['days_after']} days after Bob training cutoff (2024-11-01)")
+
+              # Write to GitHub Actions outputs
+              with open('/tmp/scan_failed', 'w') as f:
+                  f.write('true')
+
+              print("\nCOMPLIANCE: FAIL")
+              print("EU CRA Article 13: Shipping code with post-training-cutoff CVEs may violate compliance requirements")
+              sys.exit(1)
+          elif all_cves:
+              print("\nCOMPLIANCE: WARN — CVEs found but all known to Bob at generation time")
+              sys.exit(0)
+          else:
+              print("\nCOMPLIANCE: PASS — No CVEs found")
+              sys.exit(0)
+          PYEOF
+
+      - name: Post PR comment on failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔴 ChainSight: BOB BLIND SPOT DETECTED
+
+              This PR introduces dependencies with CVEs published **after IBM Bob's training cutoff (2024-11-01)**.
+              Bob could not warn about these vulnerabilities when generating this code.
+
+              **Action required:** Review the scan output and upgrade vulnerable packages before merging.
+
+              > Powered by ChainSight — IBM Bob Supply Chain Security Scanner
+              > EU CRA Article 13 compliance check`
+            })

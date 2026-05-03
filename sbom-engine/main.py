@@ -274,3 +274,100 @@ async def check_policy(session_id: str, policy: str = 'commercial'):
 async def list_policies():
     """List available license policies."""
     return {k: {'name': v['name'], 'description': v['description']} for k, v in POLICIES.items()}
+
+
+# ─── Compliance Score + Trending ──────────────────────────────────────────────
+
+def calculate_compliance_score(session: dict) -> int:
+    """
+    Calculate a 0-100 compliance score for a session.
+    100 = perfect, 0 = critical failure.
+    
+    Scoring:
+    - Start at 100
+    - -30 per Bob blind spot (unknown at generation)
+    - -10 per HIGH CVE
+    - -20 per CRITICAL CVE
+    - -5 per license violation
+    - -2 per unknown license
+    """
+    score = 100
+    score -= min(90, (session.get('post_cutoff_cves', 0) * 30))
+    score -= min(40, (session.get('high_count', 0) * 10))
+    score -= min(40, (session.get('critical_count', 0) * 20))
+    vuln_count = session.get('vulnerability_count', 0)
+    blind_count = session.get('post_cutoff_cves', 0)
+    known_cves = max(0, vuln_count - blind_count)
+    score -= min(20, known_cves * 2)
+    return max(0, score)
+
+
+@app.get('/scores')
+async def get_compliance_scores():
+    """Get compliance scores for all sessions — for trending chart."""
+    sessions = get_all_sessions()
+    scored = []
+    for s in sessions:
+        score = calculate_compliance_score(s)
+        scored.append({
+            'session_id': s['session_id'],
+            'timestamp': s.get('timestamp', ''),
+            'compliance_score': score,
+            'compliance_posture': s.get('compliance_posture', 'UNKNOWN'),
+            'post_cutoff_cves': s.get('post_cutoff_cves', 0),
+            'vulnerability_count': s.get('vulnerability_count', 0),
+            'component_count': s.get('component_count', 0),
+            'grade': 'A' if score >= 90 else 'B' if score >= 80 else 'C' if score >= 70 else 'D' if score >= 60 else 'F'
+        })
+    scored.sort(key=lambda x: x['timestamp'])
+    return scored
+
+
+@app.get('/heatmap')
+async def get_risk_heatmap():
+    """
+    Generate risk heatmap data — packages ranked by risk score.
+    Risk = (blind_spots * 10) + (critical * 8) + (high * 5) + (medium * 2) + (low * 1)
+    """
+    sessions = get_all_sessions()
+    package_risk = {}
+
+    for session in sessions:
+        sbom_path = SBOM_OUTPUT_DIR / f'{session["session_id"]}.cdx.json'
+        if not sbom_path.exists():
+            continue
+        with open(sbom_path) as f:
+            sbom = json.load(f)
+
+        for comp in sbom.get('components', []):
+            name = comp.get('name', '')
+            if not name:
+                continue
+            props = {p['name']: p['value'] for p in comp.get('properties', [])}
+            blind = int(props.get('chainsight:post-cutoff-cves', 0))
+            cve_count = int(props.get('chainsight:cve-count', 0))
+            severity = props.get('chainsight:severity', 'NONE')
+
+            sev_score = {'CRITICAL': 8, 'HIGH': 5, 'MEDIUM': 2, 'LOW': 1, 'NONE': 0}.get(severity, 0)
+            risk_score = (blind * 10) + sev_score + cve_count
+
+            if name not in package_risk:
+                package_risk[name] = {
+                    'package': name,
+                    'version': comp.get('version', 'unknown'),
+                    'risk_score': 0,
+                    'total_blind': 0,
+                    'total_cves': 0,
+                    'max_severity': 'NONE',
+                    'session_count': 0,
+                    'license': comp['licenses'][0]['license']['id'] if comp.get('licenses') else 'UNKNOWN'
+                }
+            package_risk[name]['risk_score'] = max(package_risk[name]['risk_score'], risk_score)
+            package_risk[name]['total_blind'] += blind
+            package_risk[name]['total_cves'] += cve_count
+            package_risk[name]['session_count'] += 1
+            if sev_score > {'CRITICAL': 8, 'HIGH': 5, 'MEDIUM': 2, 'LOW': 1, 'NONE': 0}.get(package_risk[name]['max_severity'], 0):
+                package_risk[name]['max_severity'] = severity
+
+    ranked = sorted(package_risk.values(), key=lambda x: x['risk_score'], reverse=True)
+    return {'packages': ranked, 'total_packages': len(ranked)}
