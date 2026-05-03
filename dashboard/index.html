@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>ChainSight — Powered by IBM Bob</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0b0b0e;color:#d4d4d8;min-height:100vh}
@@ -264,40 +264,40 @@ async function loadSessions() {
 
 async function runLatestDiff() {
   const diffEl = document.getElementById('diff-result');
-  diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Finding most dramatic comparison...</div>';
-  setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Finding interesting comparison...</div>';
   try {
     const sr = await fetch(API+'/sessions');
     const sessions = await sr.json();
     if(sessions.length < 2) throw new Error('Need at least 2 sessions');
     sessions.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-    const fails = sessions.filter(s=>s.compliance_posture==='FAIL' && (s.post_cutoff_cves||0)>0);
-    const passes = sessions.filter(s=>s.compliance_posture==='PASS');
-    let oldId, newId;
-    if(fails.length>0 && passes.length>0) {
-      const worst = fails.sort((a,b)=>b.post_cutoff_cves-a.post_cutoff_cves)[0];
-      const best = passes[passes.length-1];
-      if(new Date(worst.timestamp)>new Date(best.timestamp)) {
-        oldId=best.session_id; newId=worst.session_id;
-      } else {
-        oldId=worst.session_id; newId=best.session_id;
+
+    // Build all possible pairs and rank by interestingness
+    const pairs = [];
+    for(let i=0;i<sessions.length;i++){
+      for(let j=i+1;j<sessions.length;j++){
+        const a=sessions[i], b=sessions[j];
+        const blindDelta=Math.abs((b.post_cutoff_cves||0)-(a.post_cutoff_cves||0));
+        const postureDiff=(a.compliance_posture!==b.compliance_posture)?3:0;
+        const cveDelta=Math.abs((b.vulnerability_count||0)-(a.vulnerability_count||0));
+        const score=blindDelta*10+postureDiff*5+cveDelta;
+        pairs.push({oldId:a.session_id,newId:b.session_id,score});
       }
-    } else if(fails.length>=2) {
-      fails.sort((a,b)=>a.post_cutoff_cves-b.post_cutoff_cves);
-      oldId=fails[0].session_id; newId=fails[fails.length-1].session_id;
-    } else {
-      oldId=sessions[0].session_id; newId=sessions[sessions.length-1].session_id;
     }
-    document.getElementById('diff-old').value=oldId;
-    document.getElementById('diff-new').value=newId;
-    diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Comparing '+oldId+' → '+newId+'...</div>';
-    const r=await fetch(API+'/diff/'+oldId+'/'+newId);
+
+    // Sort by score, pick randomly from top 3 to vary the result
+    pairs.sort((a,b)=>b.score-a.score);
+    const topPairs=pairs.slice(0,Math.min(3,pairs.length));
+    const picked=topPairs[Math.floor(Math.random()*topPairs.length)];
+
+    document.getElementById('diff-old').value=picked.oldId;
+    document.getElementById('diff-new').value=picked.newId;
+    diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Comparing '+picked.oldId+' → '+picked.newId+'...</div>';
+
+    const r=await fetch(API+'/diff/'+picked.oldId+'/'+picked.newId);
     if(!r.ok) throw new Error(await r.text());
     renderDiff(await r.json());
-    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 100);
   } catch(e) {
     diffEl.innerHTML='<div style="color:#ef4444;font-size:12px;padding:12px">Error: '+e.message+'</div>';
-    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
   }
 }
 async function runDiff() {
@@ -346,6 +346,13 @@ function renderDiff(d) {
     });
     addedHtml+='</div>';
   }
+  // Flash the diff section header to draw attention
+  document.querySelector('.diff-panel .sh .st').style.color='#a78bfa';
+  document.querySelector('.diff-panel .sh .st').textContent='SBOM Diff — Results Ready ↓';
+  setTimeout(()=>{
+    document.querySelector('.diff-panel .sh .st').style.color='#71717a';
+    document.querySelector('.diff-panel .sh .st').textContent='SBOM Diff — Compare Bob Sessions';
+  }, 3000);
   document.getElementById('diff-result').innerHTML=`
     <div class="diff-card">
       <div style="font-size:12px;font-weight:500;color:#f4f4f5;margin-bottom:12px">
