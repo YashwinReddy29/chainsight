@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ChainSight — Attack Simulation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b0e;color:#d4d4d8;font-family:-apple-system,sans-serif;min-height:100vh}
+.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 24px;height:52px;display:flex;align-items:center;gap:10px}
+.logo{font-size:15px;font-weight:600;color:#f4f4f5}.logo span{color:#818cf8}
+.main{padding:24px;max-width:1200px;margin:0 auto}
+h1{font-size:18px;font-weight:500;color:#f4f4f5;margin-bottom:4px}
+.sub{font-size:12px;color:#71717a;margin-bottom:24px}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.sim-card{background:#111116;border:1px solid #1e1e28;border-radius:12px;padding:20px}
+.sim-card.without{border-color:#7f1d1d}
+.sim-card.with{border-color:#166534}
+.sim-title{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.sim-title.bad{color:#ef4444}
+.sim-title.good{color:#22c55e}
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#1e1e28}
+.event{position:relative;margin-bottom:16px}
+.event::before{content:'';position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;background:#3f3f46}
+.event.danger::before{background:#ef4444}
+.event.success::before{background:#22c55e}
+.event.blocked::before{background:#a78bfa}
+.event-time{font-size:10px;color:#52525b;margin-bottom:2px}
+.event-text{font-size:12px;color:#a1a1aa;line-height:1.5}
+.event-text.danger{color:#fca5a5}
+.event-text.success{color:#86efac}
+.event-text.blind{color:#c084fc}
+.impact-box{background:#1c0303;border:1px solid #7f1d1d;border-radius:8px;padding:14px;margin-top:16px}
+.impact-box.safe{background:#052e16;border-color:#166534}
+.impact-title{font-size:11px;font-weight:600;margin-bottom:8px}
+.impact-title.bad{color:#ef4444}
+.impact-title.good{color:#22c55e}
+.impact-stat{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.impact-label{color:#71717a}
+.impact-val.bad{color:#f87171}
+.impact-val.good{color:#4ade80}
+.cta{text-align:center;margin-top:24px}
+.cta-btn{background:linear-gradient(135deg,#1e1040,#0a1a2e);border:1px solid #4c1d95;color:#c7d2fe;padding:12px 32px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500}
+.cta-btn:hover{background:linear-gradient(135deg,#2d1a5e,#1e3a5f)}
+.vs{text-align:center;font-size:24px;font-weight:700;color:#3f3f46;display:flex;align-items:center;justify-content:center}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:14px;text-align:center}
+.stat-val{font-size:24px;font-weight:500;margin-bottom:4px}
+.stat-label{font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">Chain<span>Sight</span> — Attack Simulation</div>
+  <a href="index.html" style="margin-left:auto;font-size:11px;color:#818cf8;text-decoration:none">← Dashboard</a>
+</div>
+<div class="main">
+  <h1>What happens when Bob blind spots ship to production?</h1>
+  <p class="sub">A side-by-side simulation of two parallel universes — with and without ChainSight.</p>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" style="color:#a78bfa" id="blind-count">7</div>
+      <div class="stat-label">Bob blind spots in session</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#ef4444">536</div>
+      <div class="stat-label">Days Bob didn't know</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#22c55e" id="prevented">7</div>
+      <div class="stat-label">Vulnerabilities prevented</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#60a5fa">0</div>
+      <div class="stat-label">Blind spots that shipped</div>
+    </div>
+  </div>
+
+  <div class="sim-grid">
+    <div class="sim-card without">
+      <div class="sim-title bad">❌ Without ChainSight</div>
+      <div class="timeline" id="timeline-without">
+        <div class="event">
+          <div class="event-time">T+0min — Developer uses Bob</div>
+          <div class="event-text">Bob generates FastAPI auth service with python-jose==3.3.0 and python-multipart==0.0.9. Bob confidently suggests these packages.</div>
+        </div>
+        <div class="event danger">
+          <div class="event-time">T+0min — Bob generates code</div>
+          <div class="event-text danger">python-multipart==0.0.9 has GHSA-wp53-j4wj-2cfg (Arbitrary file write). Published 451 days after Bob training. Bob has no knowledge of this CVE.</div>
+        </div>
+        <div class="event danger">
+          <div class="event-time">T+5min — Code committed</div>
+          <div class="event-text danger">git commit passes. No scanner catches it. The vulnerability is in version control.</div>
+        </div>
+        <div class="event danger">
+          <div class="event-time">T+2hrs — Code merged to main</div>
+          <div class="event-text danger">PR approved. Blind spot CVE merged into main branch.</div>
+        </div>
+        <div class="event danger">
+          <div class="event-time">T+24hrs — Deployed to production</div>
+          <div class="event-text danger">python-multipart==0.0.9 running in production. Arbitrary file write vulnerability exposed to internet.</div>
+        </div>
+        <div class="event danger">
+          <div class="event-time">T+?days — Attacker discovers</div>
+          <div class="event-text danger">Threat actor exploits GHSA-wp53-j4wj-2cfg. Arbitrary file write used to overwrite server configuration. System compromised.</div>
+        </div>
+      </div>
+      <div class="impact-box">
+        <div class="impact-title bad">Business Impact</div>
+        <div class="impact-stat"><span class="impact-label">Vulnerability exposure</span><span class="impact-val bad">451+ days</span></div>
+        <div class="impact-stat"><span class="impact-label">Data breach risk</span><span class="impact-val bad">HIGH</span></div>
+        <div class="impact-stat"><span class="impact-label">EU CRA compliance</span><span class="impact-val bad">VIOLATION</span></div>
+        <div class="impact-stat"><span class="impact-label">Regulatory fine risk</span><span class="impact-val bad">Up to €15M</span></div>
+        <div class="impact-stat"><span class="impact-label">Bob warned about it</span><span class="impact-val bad">NO — blind spot</span></div>
+      </div>
+    </div>
+
+    <div class="sim-card with">
+      <div class="sim-title good">✓ With ChainSight</div>
+      <div class="timeline">
+        <div class="event success">
+          <div class="event-time">T+0min — Developer uses Bob</div>
+          <div class="event-text success">Bob generates FastAPI auth service. ChainSight Security Auditor mode forces exact version pins + DEPENDENCIES block automatically.</div>
+        </div>
+        <div class="event blocked">
+          <div class="event-time">T+0min — MCP intercepts</div>
+          <div class="event-text blind">ChainSight MCP tools extract dependencies, query OSV.dev. python-multipart==0.0.9 has 3 CVEs. Freshness scorer flags 2 as Bob blind spots.</div>
+        </div>
+        <div class="event blocked">
+          <div class="event-time">T+0min — Blind spot detected</div>
+          <div class="event-text blind">BOB BLIND SPOT: GHSA-wp53-j4wj-2cfg published 451 days after Bob training cutoff. Bob had NO knowledge of this CVE at generation time.</div>
+        </div>
+        <div class="event success">
+          <div class="event-time">T+1min — SBOM generated</div>
+          <div class="event-text success">CycloneDX 1.6 SBOM with AI provenance fields. chainsight:post-training-cutoff: true. Saved to Cloudant audit trail.</div>
+        </div>
+        <div class="event blocked">
+          <div class="event-time">T+2min — git commit BLOCKED</div>
+          <div class="event-text blind">Pre-commit hook fires. BOB BLIND SPOT DETECTED. Commit blocked with EU CRA Article 13 citation. Developer sees exact fix: upgrade to 0.0.18.</div>
+        </div>
+        <div class="event success">
+          <div class="event-time">T+3min — Orchestrate routes</div>
+          <div class="event-text success">watsonx Orchestrate Risk Router sends BOB BLIND SPOT DETECTED alert. Security team notified. PR blocked automatically.</div>
+        </div>
+        <div class="event success">
+          <div class="event-time">T+5min — Developer fixes</div>
+          <div class="event-text success">Auto-fix recommendation: pip install python-multipart==0.0.18. Developer applies fix. Re-scan shows PASS. Commit allowed.</div>
+        </div>
+      </div>
+      <div class="impact-box safe">
+        <div class="impact-title good">Business Impact</div>
+        <div class="impact-stat"><span class="impact-label">Vulnerability exposure</span><span class="impact-val good">0 days</span></div>
+        <div class="impact-stat"><span class="impact-label">Data breach risk</span><span class="impact-val good">ELIMINATED</span></div>
+        <div class="impact-stat"><span class="impact-label">EU CRA compliance</span><span class="impact-val good">SATISFIED</span></div>
+        <div class="impact-stat"><span class="impact-label">Regulatory fine risk</span><span class="impact-val good">€0</span></div>
+        <div class="impact-stat"><span class="impact-label">Time to fix</span><span class="impact-val good">5 minutes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a href="index.html">
+      <button class="cta-btn">View Live Dashboard →</button>
+    </a>
+  </div>
+</div>
+
+<script>
+const API = 'http://192.168.133.238:8080';
+
+async function loadRealData() {
+  try {
+    const r = await fetch(API + '/sessions');
+    const sessions = await r.json();
+    const totalBlind = sessions.reduce((a,s) => a + (s.post_cutoff_cves||0), 0);
+    document.getElementById('blind-count').textContent = totalBlind;
+    document.getElementById('prevented').textContent = totalBlind;
+  } catch(e) {}
+}
+
+loadRealData();
+</script>
+</body>
+</html>

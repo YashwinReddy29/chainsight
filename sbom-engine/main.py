@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -16,6 +16,7 @@ from cyclonedx_generator import generate_sbom, assess_posture
 from cloudant_client import save_sbom_audit, get_all_sessions
 from slack_notifier import send_blind_spot_alert, send_pass_notification
 from sbom_attestor import sign_sbom, verify_sbom
+from live_feed import register, broadcast_sync, connected_clients
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -84,6 +85,19 @@ async def generate(req: GenerateSBOMRequest):
             json.dump(sbom, f, indent=2)
 
         saved = save_sbom_audit(session_id, sbom, posture, stats)
+
+        # Broadcast to live dashboard clients
+        broadcast_sync({
+            'type': 'new_session',
+            'session_id': session_id,
+            'compliance_posture': posture,
+            'post_cutoff_cves': post_cutoff,
+            'vulnerability_count': len(sbom.get('vulnerabilities', [])),
+            'component_count': len(sbom.get('components', [])),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'message': f'BOB BLIND SPOT DETECTED: {post_cutoff} CVEs unknown at generation time' if post_cutoff > 0 else f'Session {session_id} scanned — posture: {posture}'
+        })
+
 
         # Send Slack notification
         blind_vuln_list = [v for v in sbom.get('vulnerabilities', [])
@@ -371,3 +385,58 @@ async def get_risk_heatmap():
 
     ranked = sorted(package_risk.values(), key=lambda x: x['risk_score'], reverse=True)
     return {'packages': ranked, 'total_packages': len(ranked)}
+
+
+# ─── WebSocket Live Feed ──────────────────────────────────────────────────────
+
+@app.websocket('/ws')
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time dashboard updates."""
+    await websocket.accept()
+    await register(websocket)
+
+
+@app.get('/ws/clients')
+async def ws_clients():
+    """Number of connected dashboard clients."""
+    return {'connected_clients': len(connected_clients)}
+
+
+# ─── AI Risk Assessment ───────────────────────────────────────────────────────
+
+from ai_risk_assessor import generate_risk_assessment
+
+@app.get('/assess/{session_id}')
+async def ai_risk_assess(session_id: str):
+    """Generate a watsonx.ai natural language risk assessment for a session."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes = generate_fixes(sbom)
+    assessment = generate_risk_assessment(session_id, sbom, fixes)
+    return assessment
+
+
+# ─── Compliance Bundle Download ───────────────────────────────────────────────
+
+from bundle_generator import generate_compliance_bundle
+from pdf_report import generate_pdf_report
+
+@app.get('/bundle/{session_id}')
+async def download_bundle(session_id: str):
+    """Download complete compliance bundle as ZIP."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    fixes = generate_fixes(sbom)
+    pdf_bytes = generate_pdf_report(session_id, sbom, fixes)
+    bundle = generate_compliance_bundle(session_id, sbom, fixes, pdf_bytes)
+    return Response(
+        content=bundle,
+        media_type='application/zip',
+        headers={'Content-Disposition': f'attachment; filename="chainsight-bundle-{session_id}.zip"'}
+    )

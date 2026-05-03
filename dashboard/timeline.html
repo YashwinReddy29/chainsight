@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ChainSight — CVE Timeline</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b0e;color:#d4d4d8;font-family:-apple-system,sans-serif;min-height:100vh}
+.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 24px;height:52px;display:flex;align-items:center;gap:10px}
+.logo{font-size:15px;font-weight:600;color:#f4f4f5}.logo span{color:#818cf8}
+.main{padding:24px;max-width:1400px;margin:0 auto}
+h1{font-size:18px;font-weight:500;color:#f4f4f5;margin-bottom:4px}
+.sub{font-size:12px;color:#71717a;margin-bottom:20px}
+.legend{display:flex;gap:16px;margin-bottom:16px;font-size:11px}
+.leg{display:flex;align-items:center;gap:6px;color:#71717a}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+.chart-card{background:#111116;border:1px solid #1e1e28;border-radius:12px;padding:20px;margin-bottom:16px}
+.chart-title{font-size:12px;font-weight:500;color:#a1a1aa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px}
+.chart-h{position:relative;height:300px}
+.cve-list{background:#111116;border:1px solid #1e1e28;border-radius:12px;padding:20px}
+.cve-item{display:grid;grid-template-columns:140px 180px 1fr 100px 120px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #18181c;font-size:12px}
+.cve-item:last-child{border-bottom:none}
+.cve-item.header{font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:.06em;padding-bottom:8px;border-bottom:1px solid #2a2a35}
+.cve-id{font-family:monospace;color:#6366f1}
+.cve-pkg{color:#a1a1aa}
+.cve-pub{color:#71717a}
+.cve-blind{color:#a78bfa;font-weight:600}
+.cve-known{color:#22c55e}
+.cutoff-label{font-size:10px;color:#ef4444}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">Chain<span>Sight</span> — CVE Timeline</div>
+  <a href="index.html" style="margin-left:auto;font-size:11px;color:#818cf8;text-decoration:none">← Dashboard</a>
+</div>
+<div class="main">
+  <h1>CVE Discovery Timeline vs Bob Training Cutoff</h1>
+  <p class="sub">When was each CVE discovered relative to November 1, 2024 — the date Bob stopped learning?</p>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Bob blind spot (unknown at generation)</div>
+    <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Known to Bob (before cutoff)</div>
+    <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Bob training cutoff: 2024-11-01</div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">CVE publish date vs Bob training cutoff</div>
+    <div class="chart-h"><canvas id="timelineChart"></canvas></div>
+  </div>
+
+  <div class="cve-list">
+    <div class="cve-item header">
+      <span>CVE ID</span>
+      <span>Package</span>
+      <span>Published</span>
+      <span>Days vs Cutoff</span>
+      <span>Bob Awareness</span>
+    </div>
+    <div id="cve-rows"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://192.168.133.238:8080';
+const CUTOFF = new Date('2024-11-01T00:00:00Z');
+
+let chart;
+
+async function load() {
+  const r = await fetch(API + '/sessions');
+  const sessions = await r.json();
+
+  const allCves = [];
+  const seen = new Set();
+
+  for (const session of sessions) {
+    try {
+      const sr = await fetch(`${API}/session/${session.session_id}`);
+      const sbom = await sr.json();
+      for (const vuln of sbom.vulnerabilities || []) {
+        if (seen.has(vuln.id)) continue;
+        seen.add(vuln.id);
+        const props = {};
+        (vuln.properties || []).forEach(p => props[p.name] = p.value);
+        const published = vuln.published ? new Date(vuln.published) : null;
+        const isBlind = props['chainsight:post-training-cutoff'] === 'true';
+        const daysAfter = parseInt(props['chainsight:days-after-cutoff'] || 0);
+        const affects = (vuln.affects || []).map(a => a.ref || '').join(', ');
+        allCves.push({
+          id: vuln.id,
+          package: affects,
+          published: vuln.published,
+          publishedDate: published,
+          isBlind,
+          daysAfter: isBlind ? daysAfter : -(published ? Math.floor((CUTOFF - published) / 86400000) : 0),
+          description: vuln.description || ''
+        });
+      }
+    } catch(e) {}
+  }
+
+  allCves.sort((a,b) => (a.publishedDate||0) - (b.publishedDate||0));
+
+  // Build chart
+  const labels = allCves.map(c => c.id.substring(0,15));
+  const data = allCves.map(c => c.daysAfter);
+  const colors = allCves.map(c => c.isBlind ? '#a78bfa' : '#22c55e');
+
+  const ctx = document.getElementById('timelineChart');
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Days relative to Bob cutoff (positive = blind spot)',
+          data,
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 1,
+          borderRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#71717a', font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const cve = allCves[ctx.dataIndex];
+              return [
+                `Package: ${cve.package}`,
+                `Published: ${cve.published?.substring(0,10) || 'unknown'}`,
+                cve.isBlind
+                  ? `BOB BLIND SPOT: +${cve.daysAfter} days after cutoff`
+                  : `Known to Bob: ${Math.abs(cve.daysAfter)} days before cutoff`
+              ];
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            cutoffLine: {
+              type: 'line',
+              yMin: 0,
+              yMax: 0,
+              borderColor: '#ef4444',
+              borderWidth: 2,
+              borderDash: [6,3],
+              label: {
+                display: true,
+                content: 'Bob Training Cutoff',
+                color: '#ef4444',
+                font: { size: 10 }
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#52525b', font: { size: 8 }, maxRotation: 45 },
+          grid: { color: '#1e1e28' }
+        },
+        y: {
+          ticks: {
+            color: '#52525b',
+            font: { size: 9 },
+            callback: v => v > 0 ? `+${v}d` : `${v}d`
+          },
+          grid: { color: '#1e1e28' },
+          title: {
+            display: true,
+            text: '← Known to Bob | Bob Blind Spots →',
+            color: '#71717a',
+            font: { size: 10 }
+          }
+        }
+      }
+    }
+  });
+
+  // Build CVE list
+  const rows = allCves.map(c => `
+    <div class="cve-item">
+      <span class="cve-id">${c.id.substring(0,20)}</span>
+      <span class="cve-pkg">${(c.package||'').substring(0,25)}</span>
+      <span class="cve-pub">${c.published?.substring(0,10) || 'unknown'}</span>
+      <span class="${c.isBlind ? 'cve-blind' : 'cve-known'}">
+        ${c.isBlind ? `+${c.daysAfter} days BLIND` : `${Math.abs(c.daysAfter)} days before`}
+      </span>
+      <span class="${c.isBlind ? 'cve-blind' : 'cve-known'}">
+        ${c.isBlind ? '👁 Unknown to Bob' : '✓ Bob knew'}
+      </span>
+    </div>
+  `).join('');
+  document.getElementById('cve-rows').innerHTML = rows;
+}
+
+load();
+</script>
+</body>
+</html>

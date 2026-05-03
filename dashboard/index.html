@@ -14,6 +14,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sdot{width:7px;height:7px;border-radius:50%;background:#ef4444;transition:background .3s;margin-left:8px}
 .sdot.on{background:#22c55e;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 .main{padding:20px 24px;max-width:1400px;margin:0 auto}
 .hero{background:linear-gradient(135deg,#0d0d1e,#1a0a2e);border:1px solid #312e81;border-radius:12px;padding:20px 24px;margin-bottom:16px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px}
 .hero-icon{width:48px;height:48px;background:#1e1040;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px}
@@ -96,8 +97,15 @@ tr.blind-row td{background:#0d0a1a}
 <div class="topbar">
   <div class="logo">Chain<span>Sight</span></div>
   <div class="badge">IBM Bob Dev Day 2026</div>
-  <div class="powered">Powered by <strong>IBM Bob</strong> + watsonx.ai + Orchestrate + Cloudant</div><a href="graph.html" target="_blank" style="font-size:11px;color:#818cf8;text-decoration:none;border:1px solid #312e81;padding:2px 10px;border-radius:4px;margin-left:8px">🕸 Dependency Graph</a>
+  <div class="powered">Powered by <strong>IBM Bob</strong> + watsonx.ai + Orchestrate + Cloudant</div><a href="graph.html" target="_blank" style="font-size:11px;color:#818cf8;text-decoration:none;border:1px solid #312e81;padding:2px 10px;border-radius:4px;margin-left:8px">🕸 Graph</a>
+  <a href="timeline.html" target="_blank" style="font-size:11px;color:#60a5fa;text-decoration:none;border:1px solid #1e3a5f;padding:2px 10px;border-radius:4px;margin-left:4px">📅 Timeline</a>
+  <a href="simulation.html" target="_blank" style="font-size:11px;color:#ef4444;text-decoration:none;border:1px solid #7f1d1d;padding:2px 10px;border-radius:4px;margin-left:4px">⚡ Simulation</a>
   <div class="sdot" id="sdot"></div>
+  <div id="live-indicator" style="font-size:10px;color:#52525b;display:flex;align-items:center;gap:4px;margin-left:4px">
+    <div id="ws-dot" style="width:6px;height:6px;border-radius:50%;background:#52525b"></div>
+    <span id="ws-status">connecting...</span>
+  </div>
+  <div id="live-event" style="font-size:10px;color:#71717a;margin-left:8px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
 </div>
 <div class="main">
 
@@ -295,8 +303,8 @@ async function loadSessions() {
         <td><span class="bp ${p}">${s.compliance_posture||'?'}</span></td>
         <td style="font-size:10px">${b>0?'<span style="color:#a78bfa;font-weight:500">BOB BLIND SPOT</span>':p==='warn'?'<span style="color:#eab308">Review needed</span>':'<span style="color:#22c55e">Clean</span>'}</td>
         <td style="white-space:nowrap">
-          ${b>0 ? `<button onclick="getFix('${s.session_id}')" style="font-size:9px;background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">Auto-fix</button>` : ''}
-          <a href="http://192.168.133.238:8080/report/${s.session_id}/pdf" target="_blank" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;text-decoration:none">PDF</a>
+          ${b>0 ? `<button onclick="aiAssess('${s.session_id}')" style="font-size:9px;background:#0a2010;color:#4ade80;border:1px solid #166534;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">AI Risk</button><button onclick="getFix('${s.session_id}')" style="font-size:9px;background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">Auto-fix</button>` : ''}
+          <a href="http://192.168.133.238:8080/report/${s.session_id}/pdf" target="_blank" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;text-decoration:none;margin-right:2px">PDF</a><a href="http://192.168.133.238:8080/bundle/${s.session_id}" style="font-size:9px;background:#0a1a0a;color:#4ade80;border:1px solid #166534;padding:2px 7px;border-radius:3px;text-decoration:none">ZIP</a>
         </td>
       </tr>`;
     }).join('');
@@ -505,6 +513,29 @@ async function runPolicyCheck() {
     res.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:8px">Error: ${e.message}</div>`;
   }
 }
+async function aiAssess(sid) {
+  const res = document.getElementById('diff-result');
+  res.scrollIntoView({behavior:'smooth'});
+  res.innerHTML = '<div style="color:#4ade80;padding:12px;font-size:12px">watsonx.ai LLaMA 3.3 70B generating risk assessment for ' + sid + '...</div>';
+  try {
+    const r = await fetch('http://192.168.133.238:8080/assess/' + sid);
+    const d = await r.json();
+    const color = d.risk_level === 'CRITICAL' ? '#ef4444' : d.risk_level === 'HIGH' ? '#f97316' : '#22c55e';
+    res.innerHTML = `<div class="diff-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:600;color:${color}">watsonx.ai Risk Assessment</div>
+        <span style="font-size:11px;background:${color}22;color:${color};border:1px solid ${color}44;padding:2px 8px;border-radius:4px;font-weight:600">${d.risk_level}</span>
+        <span style="font-size:10px;color:#52525b;margin-left:auto">by ${d.generated_by}</span>
+      </div>
+      <div style="font-size:13px;color:#f4f4f5;line-height:1.7;background:#0a0a0e;padding:14px;border-radius:8px;border-left:3px solid ${color}">
+        ${d.assessment}
+      </div>
+      ${d.fixes_available > 0 ? '<div style="margin-top:10px;font-size:11px;color:#4ade80">✓ ' + d.fixes_available + ' automated fix(es) available — click Auto-fix for details</div>' : ''}
+    </div>`;
+  } catch(e) {
+    res.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:12px">Error: ' + e.message + '</div>';
+  }
+}
 async function getFix(sid) {
   const res = document.getElementById('diff-result');
   res.scrollIntoView({behavior:'smooth'});
@@ -618,6 +649,76 @@ async function getFix(sid) {
   }
   loadScores();
   setInterval(loadScores, 15000);
+
+  // WebSocket live feed
+  let ws, wsReconnectTimer;
+
+  function connectWS() {
+    try {
+      ws = new WebSocket('ws://192.168.133.238:8080/ws');
+
+      ws.onopen = () => {
+        document.getElementById('ws-dot').style.background = '#22c55e';
+        document.getElementById('ws-status').textContent = 'live';
+        document.getElementById('ws-status').style.color = '#22c55e';
+        clearTimeout(wsReconnectTimer);
+      };
+
+      ws.onmessage = (e) => {
+        const event = JSON.parse(e.data);
+        if (event.type === 'new_session') {
+          // Flash the live event ticker
+          const ticker = document.getElementById('live-event');
+          ticker.style.color = event.compliance_posture === 'FAIL' ? '#ef4444' :
+                                event.compliance_posture === 'WARN' ? '#eab308' : '#22c55e';
+          ticker.textContent = '⚡ ' + event.message;
+          setTimeout(() => { ticker.textContent = ''; }, 8000);
+
+          // Reload sessions immediately
+          loadSessions();
+          loadScores();
+
+          // Show notification banner
+          showLiveAlert(event);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-dot').style.background = '#52525b';
+        document.getElementById('ws-status').textContent = 'reconnecting...';
+        document.getElementById('ws-status').style.color = '#52525b';
+        wsReconnectTimer = setTimeout(connectWS, 3000);
+      };
+
+      ws.onerror = () => {
+        document.getElementById('ws-dot').style.background = '#ef4444';
+        document.getElementById('ws-status').textContent = 'offline';
+      };
+    } catch(e) {}
+  }
+
+  function showLiveAlert(event) {
+    const existing = document.getElementById('live-alert-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'live-alert-banner';
+    const color = event.compliance_posture === 'FAIL' ? '#ef4444' : '#22c55e';
+    const bg = event.compliance_posture === 'FAIL' ? '#1c0303' : '#052e16';
+    const border = event.compliance_posture === 'FAIL' ? '#7f1d1d' : '#166534';
+    banner.style.cssText = `position:fixed;top:60px;right:16px;z-index:1000;background:${bg};border:1px solid ${border};border-radius:8px;padding:12px 16px;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,0.5);animation:slideIn .3s ease`;
+    banner.innerHTML = `
+      <div style="font-size:11px;font-weight:600;color:${color};margin-bottom:4px">⚡ Live Update</div>
+      <div style="font-size:11px;color:#d4d4d8">${event.message}</div>
+      <div style="font-size:10px;color:#71717a;margin-top:4px">${new Date(event.timestamp).toLocaleTimeString()}</div>
+      <button onclick="this.parentElement.remove()" style="position:absolute;top:6px;right:8px;background:none;border:none;color:#71717a;cursor:pointer;font-size:14px">×</button>
+    `;
+    document.body.appendChild(banner);
+    setTimeout(() => { if(banner.parentElement) banner.remove(); }, 8000);
+  }
+
+  connectWS();
+
 initCharts();
 loadSessions();
 setInterval(loadSessions,15000);
