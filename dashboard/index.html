@@ -161,6 +161,22 @@ tr.blind-row td{background:#0d0a1a}
   </div>
   <div id="policy-result" style="margin-bottom:16px"></div>
 
+  <div class="sh" style="margin-bottom:10px">
+    <div class="st">License Policy Check</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="policy-select" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
+        <option value="commercial">Commercial Policy</option>
+        <option value="strict">Strict OSS Policy</option>
+        <option value="permissive">Permissive Only</option>
+      </select>
+      <select id="policy-session" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
+        <option value="">Select session...</option>
+      </select>
+      <button class="rbtn" onclick="runPolicyCheck()">Check →</button>
+    </div>
+  </div>
+  <div id="policy-result" style="margin-bottom:16px"></div>
+
   <div class="sh">
     <div class="st">Bob session audit log</div>
     <button class="rbtn" onclick="loadSessions()">↻ Refresh</button>
@@ -236,6 +252,14 @@ async function loadSessions() {
     document.getElementById('m-c').textContent=tc;
     document.getElementById('m-b').textContent=tb;
     document.getElementById('m-d').textContent=td;
+    // Populate policy session dropdown
+    const policySessionSel = document.getElementById('policy-session');
+    if (policySessionSel) {
+      policySessionSel.innerHTML = '<option value="">Select session...</option>' +
+        sessions.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))
+          .map(s => `<option value="${s.session_id}">${s.session_id.substring(0,14)}... (${s.compliance_posture})</option>`)
+          .join('');
+    }
     // Populate policy session dropdown
     const policySessionSel = document.getElementById('policy-session');
     if (policySessionSel) {
@@ -403,6 +427,47 @@ function renderDiff(d) {
     </div>`;
 }
 
+async function runPolicyCheck() {
+  const sid = document.getElementById('policy-session').value;
+  const pol = document.getElementById('policy-select').value;
+  if (!sid) { alert('Select a session first'); return; }
+  const res = document.getElementById('policy-result');
+  res.innerHTML = '<div style="color:#71717a;font-size:12px;padding:8px">Checking license policy...</div>';
+  try {
+    const r = await fetch(`${API}/policy/${sid}?policy=${pol}`);
+    const d = await r.json();
+    const sc = d.policy_status === 'FAIL' ? '#ef4444' : d.policy_status === 'WARN' ? '#eab308' : '#22c55e';
+    let html = `<div style="background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:14px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:500;color:#f4f4f5">${d.policy}</div>
+        <span style="font-size:11px;font-weight:600;color:${sc};background:${sc}22;border:1px solid ${sc}44;padding:2px 8px;border-radius:4px">${d.policy_status}</span>
+        <div style="font-size:11px;color:#71717a;margin-left:auto">${d.compliant_count} compliant · ${d.warning_count} warn · ${d.violation_count} blocked</div>
+      </div>`;
+    if (d.violations.length > 0) {
+      html += '<div style="margin-bottom:8px">';
+      d.violations.forEach(v => {
+        html += `<div style="background:#1c0303;border:1px solid #7f1d1d;border-radius:6px;padding:8px 12px;margin-bottom:4px">
+          <span style="color:#ef4444;font-weight:600;font-size:11px">${v.package}==${v.version}</span>
+          <span style="color:#f87171;font-size:11px;margin-left:8px">${v.license}</span>
+          <div style="color:#fca5a5;font-size:10px;margin-top:2px">${v.action}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    if (d.warnings.length > 0) {
+      d.warnings.forEach(w => {
+        html += `<div style="background:#1c1700;border:1px solid #713f12;border-radius:6px;padding:6px 12px;margin-bottom:4px;font-size:11px">
+          <span style="color:#eab308">${w.package}==${w.version}</span>
+          <span style="color:#fbbf24;margin-left:8px">${w.license}</span> — legal review needed
+        </div>`;
+      });
+    }
+    html += '</div>';
+    res.innerHTML = html;
+  } catch(e) {
+    res.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:8px">Error: ${e.message}</div>`;
+  }
+}
 async function runPolicyCheck() {
   const sid = document.getElementById('policy-session').value;
   const pol = document.getElementById('policy-select').value;
