@@ -440,3 +440,177 @@ async def download_bundle(session_id: str):
         media_type='application/zip',
         headers={'Content-Disposition': f'attachment; filename="chainsight-bundle-{session_id}.zip"'}
     )
+
+
+# ─── Session Replay ───────────────────────────────────────────────────────────
+
+@app.post('/replay/{session_id}')
+async def replay_session(session_id: str):
+    """
+    Re-run the SBOM pipeline on an existing session with current CVE data.
+    Useful for checking if new CVEs have been published since the original scan.
+    """
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+
+    with open(sbom_path) as f:
+        old_sbom = json.load(f)
+
+    # Extract dependencies from old SBOM
+    deps = []
+    for comp in old_sbom.get('components', []):
+        props = {p['name']: p['value'] for p in comp.get('properties', [])}
+        deps.append({
+            'name': comp.get('name', ''),
+            'version': comp.get('version', 'unknown'),
+            'ecosystem': props.get('chainsight:ecosystem', 'PyPI')
+        })
+
+    if not deps:
+        raise HTTPException(status_code=400, detail='No components found in session')
+
+    # Query OSV.dev fresh
+    import urllib.request as urlreq
+    queries = [{'package': {'name': d['name'], 'ecosystem': d['ecosystem']},
+                'version': d['version']} for d in deps if d['version'] != 'unknown']
+
+    try:
+        body = json.dumps({'queries': queries}).encode()
+        req = urlreq.Request('https://api.osv.dev/v1/querybatch',
+                             data=body, headers={'Content-Type': 'application/json'})
+        with urlreq.urlopen(req, timeout=15) as r:
+            osv = json.loads(r.read())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'OSV query failed: {e}')
+
+    results = osv.get('results', [])
+    cutoff = datetime(2024, 11, 1, tzinfo=timezone.utc)
+
+    new_cves = []
+    new_blind_spots = []
+
+    for i, dep in enumerate(deps):
+        if i >= len(results):
+            break
+        vulns = results[i].get('vulns', []) if i < len(results) else []
+        old_vuln_ids = {v.get('id') for v in old_sbom.get('vulnerabilities', [])}
+
+        for v in vulns:
+            vid = v.get('id', '')
+            published = v.get('published', '')
+            is_new = vid not in old_vuln_ids
+
+            is_blind = False
+            days_after = 0
+            if published:
+                try:
+                    pub = datetime.fromisoformat(published.replace('Z', '+00:00'))
+                    is_blind = pub > cutoff
+                    if is_blind:
+                        days_after = (pub - cutoff).days
+                except Exception:
+                    pass
+
+            if is_new:
+                entry = {
+                    'id': vid,
+                    'package': dep['name'],
+                    'version': dep['version'],
+                    'published': published,
+                    'is_blind': is_blind,
+                    'days_after_cutoff': days_after,
+                    'summary': v.get('summary', '')
+                }
+                new_cves.append(entry)
+                if is_blind:
+                    new_blind_spots.append(entry)
+
+    return {
+        'session_id': session_id,
+        'replayed_at': datetime.now(timezone.utc).isoformat(),
+        'original_component_count': len(deps),
+        'original_vuln_count': len(old_sbom.get('vulnerabilities', [])),
+        'new_cves_since_original_scan': len(new_cves),
+        'new_blind_spots_since_original_scan': len(new_blind_spots),
+        'new_cves': new_cves,
+        'new_blind_spots': new_blind_spots,
+        'message': f'{len(new_blind_spots)} new Bob blind spot(s) discovered since original scan' if new_blind_spots else 'No new CVEs since original scan'
+    }
+
+
+# ─── Trending Alerts ──────────────────────────────────────────────────────────
+
+@app.get('/trends')
+async def get_trends():
+    """
+    Detect packages whose risk is increasing across sessions.
+    Returns trending alerts for packages that appear in multiple sessions
+    with increasing CVE counts or new blind spots.
+    """
+    sessions = get_all_sessions()
+    sorted_sessions = sorted(sessions, key=lambda s: s.get('timestamp', ''))
+
+    package_history = {}
+
+    for session in sorted_sessions:
+        sbom_path = SBOM_OUTPUT_DIR / f'{session["session_id"]}.cdx.json'
+        if not sbom_path.exists():
+            continue
+        with open(sbom_path) as f:
+            sbom = json.load(f)
+
+        for comp in sbom.get('components', []):
+            name = comp.get('name', '')
+            if not name:
+                continue
+            props = {p['name']: p['value'] for p in comp.get('properties', [])}
+            cve_count = int(props.get('chainsight:cve-count', 0))
+            blind_count = int(props.get('chainsight:post-cutoff-cves', 0))
+            severity = props.get('chainsight:severity', 'NONE')
+
+            if name not in package_history:
+                package_history[name] = []
+            package_history[name].append({
+                'session_id': session['session_id'],
+                'timestamp': session.get('timestamp', ''),
+                'cve_count': cve_count,
+                'blind_count': blind_count,
+                'severity': severity
+            })
+
+    alerts = []
+    for pkg, history in package_history.items():
+        if len(history) < 2:
+            continue
+
+        first = history[0]
+        last = history[-1]
+
+        cve_delta = last['cve_count'] - first['cve_count']
+        blind_delta = last['blind_count'] - first['blind_count']
+
+        if cve_delta > 0 or blind_delta > 0:
+            alerts.append({
+                'package': pkg,
+                'trend': 'WORSENING',
+                'cve_delta': cve_delta,
+                'blind_delta': blind_delta,
+                'first_seen': first['timestamp'],
+                'latest_seen': last['timestamp'],
+                'first_cves': first['cve_count'],
+                'latest_cves': last['cve_count'],
+                'first_blind': first['blind_count'],
+                'latest_blind': last['blind_count'],
+                'severity': last['severity'],
+                'message': f'{pkg} risk increased: +{cve_delta} CVEs, +{blind_delta} blind spots across {len(history)} sessions'
+            })
+
+    alerts.sort(key=lambda a: (a['blind_delta'], a['cve_delta']), reverse=True)
+
+    return {
+        'alerts': alerts,
+        'total_alerts': len(alerts),
+        'packages_tracked': len(package_history),
+        'sessions_analyzed': len(sorted_sessions)
+    }
