@@ -1,0 +1,19 @@
+# Auth Service Dependencies
+# All versions are pinned for security and reproducibility
+
+fastapi==0.109.2
+uvicorn==0.27.1
+pyjwt==2.8.0
+pydantic==2.6.1
+pydantic-core==2.16.2
+pydantic-settings==2.1.0
+email-validator==2.1.0.post1
+python-multipart==0.0.9
+annotated-types==0.6.0
+anyio==4.2.0
+click==8.1.7
+h11==0.14.0
+idna==3.6
+sniffio==1.3.0
+starlette==0.36.3
+typing-extensions==4.9.0

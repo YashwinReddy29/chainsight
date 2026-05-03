@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      - SECRET_KEY=your-secret-key-change-in-production-use-env-file
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  data-service:
+    build:
+      context: ./data-service
+      dockerfile: Dockerfile
+    container_name: data-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=sqlite:///./data.db
+      - AUTH_SERVICE_URL=http://auth-service:8001
+    volumes:
+      - data-volume:/app
+    networks:
+      - microservices-network
+    depends_on:
+      - auth-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8001
+      - DATA_SERVICE_URL=http://data-service:8002
+    networks:
+      - microservices-network
+    depends_on:
+      - auth-service
+      - data-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  data-volume:
+
+# Made with Bob

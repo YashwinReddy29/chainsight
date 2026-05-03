@@ -1,0 +1,20 @@
+# Data Pipeline Dependencies - All versions pinned exactly for supply chain security
+# Generated: 2026-05-03
+
+# HTTP requests library
+requests==2.31.0  # CHAINSIGHT-REVIEW
+
+# HTML parsing
+beautifulsoup4==4.12.3  # CHAINSIGHT-REVIEW
+
+# Database ORM
+sqlalchemy==2.0.29
+
+# Required dependencies for the above packages
+certifi==2024.2.2
+charset-normalizer==3.3.2
+idna==3.6
+urllib3==2.2.1
+soupsieve==2.5
+typing-extensions==4.11.0
+greenlet==3.0.3

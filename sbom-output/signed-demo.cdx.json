@@ -1,0 +1,361 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:225aadba-e1cb-4779-b232-b2db78e07fbe",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-03T00:48:27.362698+00:00",
+    "tools": [
+      {
+        "vendor": "IBM",
+        "name": "Bob",
+        "version": "1.0"
+      },
+      {
+        "vendor": "ChainSight",
+        "name": "ChainSight SBOM Engine",
+        "version": "1.0.0"
+      }
+    ],
+    "properties": [
+      {
+        "name": "chainsight:session-id",
+        "value": "signed-demo"
+      },
+      {
+        "name": "chainsight:generation-method",
+        "value": "AI-assisted (IBM Bob)"
+      },
+      {
+        "name": "chainsight:training-cutoff",
+        "value": "2024-11-01"
+      },
+      {
+        "name": "chainsight:sbom-type",
+        "value": "AI-Generated Code SBOM"
+      },
+      {
+        "name": "ai:tool-name",
+        "value": "IBM Bob"
+      },
+      {
+        "name": "ai:regulation-compliance",
+        "value": "EU-AI-Act-Article-11,US-EO-14028"
+      },
+      {
+        "name": "chainsight:attestation",
+        "value": "{\"algorithm\": \"HMAC-SHA256\", \"signature\": \"V1xiXIgONdyzOvu8krggiBTPns9owwk+n4RxHfEZfsM=\", \"content_hash\": \"fc97ed672851aac95edb2ee72ea3aa09fc7ea5894c91dfefffcc5f3fca499cb5\", \"signed_at\": \"2026-05-03T00:48:27.362971+00:00\", \"signed_by\": \"ChainSight v1.0 \\u2014 IBM Bob Dev Day 2026\", \"key_id\": \"b0c3f1ff9701ec99\", \"fields_signed\": [\"serialNumber\", \"components\", \"vulnerabilities\"], \"compliance\": \"US-EO-14028, EU-CRA-Article-13\"}"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "python-jose@3.3.0",
+      "name": "python-jose",
+      "version": "3.3.0",
+      "purl": "pkg:pypi/python-jose@3.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "signed-demo"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "1"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.0"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "Not classified"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "python-multipart@0.0.9",
+      "name": "python-multipart",
+      "version": "0.0.9",
+      "purl": "pkg:pypi/python-multipart@0.0.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "signed-demo"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.0"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "Not classified"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastapi@0.111.0",
+      "name": "fastapi",
+      "version": "0.111.0",
+      "purl": "pkg:pypi/fastapi@0.111.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "signed-demo"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.0"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "Not classified"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "bom-ref": "vuln-GHSA-6c5p-j8vq-pqhj-python-jose",
+      "id": "GHSA-6c5p-j8vq-pqhj",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-6c5p-j8vq-pqhj"
+      },
+      "description": "Algorithm confusion",
+      "published": "2024-09-03T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-jose@3.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "false"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "KNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "Known to Bob"
+        }
+      ],
+      "recommendation": "Upgrade python-jose to 4.0.0 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-wp53-j4wj-2cfg-python-multipart",
+      "id": "GHSA-wp53-j4wj-2cfg",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-wp53-j4wj-2cfg"
+      },
+      "description": "Arbitrary file write",
+      "published": "2026-01-26T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "451"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-59g5-xgcq-4qw3-python-multipart",
+      "id": "GHSA-59g5-xgcq-4qw3",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-59g5-xgcq-4qw3"
+      },
+      "description": "DoS via malformed multipart",
+      "published": "2025-01-15T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "75"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    }
+  ]
+}

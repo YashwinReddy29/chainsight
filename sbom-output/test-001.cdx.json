@@ -1,0 +1,255 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:32bf4d09-53e9-48a7-a42c-fb68b3c0eff4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-02T22:36:27.414282+00:00",
+    "tools": [
+      {
+        "vendor": "IBM",
+        "name": "Bob",
+        "version": "1.0"
+      },
+      {
+        "vendor": "ChainSight",
+        "name": "ChainSight SBOM Engine",
+        "version": "1.0.0"
+      }
+    ],
+    "properties": [
+      {
+        "name": "chainsight:session-id",
+        "value": "test-001"
+      },
+      {
+        "name": "chainsight:generation-method",
+        "value": "AI-assisted (IBM Bob)"
+      },
+      {
+        "name": "chainsight:training-cutoff",
+        "value": "2024-11-01"
+      },
+      {
+        "name": "chainsight:sbom-type",
+        "value": "AI-Generated Code SBOM"
+      },
+      {
+        "name": "ai:tool-name",
+        "value": "IBM Bob"
+      },
+      {
+        "name": "ai:regulation-compliance",
+        "value": "EU-AI-Act-Article-11,US-EO-14028"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "python-jose@3.3.0",
+      "name": "python-jose",
+      "version": "3.3.0",
+      "purl": "pkg:pypi/python-jose@3.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "test-001"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "1"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.0"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "Not classified"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "requests@2.32.3",
+      "name": "requests",
+      "version": "2.32.3",
+      "purl": "pkg:pypi/requests@2.32.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "test-001"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.0"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "Not classified"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "bom-ref": "vuln-CVE-2024-33663-python-jose",
+      "id": "CVE-2024-33663",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/CVE-2024-33663"
+      },
+      "description": "Algorithm confusion attack",
+      "published": "2024-05-15T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-jose@3.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "196"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: published 196 days after training cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-jose to 4.0.0 or later"
+    },
+    {
+      "bom-ref": "vuln-CVE-2022-29217-python-jose",
+      "id": "CVE-2022-29217",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/CVE-2022-29217"
+      },
+      "description": "JWT confusion",
+      "published": "2022-05-24T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-jose@3.3.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "false"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "KNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "Bob was trained with knowledge of this CVE"
+        }
+      ],
+      "recommendation": "Upgrade python-jose to 3.3.0 or later"
+    }
+  ]
+}
