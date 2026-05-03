@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' http://192.168.133.238:8080 https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src *;">
 <title>ChainSight — Powered by IBM Bob</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
@@ -181,18 +180,18 @@ tr.blind-row td{background:#0d0a1a}
   <div class="sh" style="margin-bottom:10px">
     <div class="st">License Policy Check</div>
     <div style="display:flex;gap:8px;align-items:center">
-      <select id="policy-select" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
+      <select id="policy-select-2" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
         <option value="commercial">Commercial Policy</option>
         <option value="strict">Strict OSS Policy</option>
         <option value="permissive">Permissive Only</option>
       </select>
-      <select id="policy-session" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
+      <select id="policy-session-2" style="background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:3px 8px;border-radius:5px;font-size:11px">
         <option value="">Select session...</option>
       </select>
       <button class="rbtn" onclick="runPolicyCheck()">Check →</button>
     </div>
   </div>
-  <div id="policy-result" style="margin-bottom:16px"></div>
+  <div id="policy-result-2" style="margin-bottom:16px"></div>
 
   <div class="sh">
     <div class="st">Bob session audit log</div>
