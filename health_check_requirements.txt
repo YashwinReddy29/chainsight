@@ -1,0 +1,5 @@
+# Health Check Service Dependencies
+# All versions are pinned exactly for supply chain security
+
+httpx==0.27.0  # CHAINSIGHT-REVIEW
+pydantic==2.7.1  # CHAINSIGHT-REVIEW
