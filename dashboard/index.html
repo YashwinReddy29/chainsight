@@ -271,7 +271,7 @@ async function runLatestDiff() {
     if(sessions.length < 2) throw new Error('Need at least 2 sessions');
     sessions.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
 
-    // Build all possible pairs and rank by interestingness
+    // Build all pairs and rank — skip boring identical ones
     const pairs = [];
     for(let i=0;i<sessions.length;i++){
       for(let j=i+1;j<sessions.length;j++){
@@ -279,12 +279,17 @@ async function runLatestDiff() {
         const blindDelta=Math.abs((b.post_cutoff_cves||0)-(a.post_cutoff_cves||0));
         const postureDiff=(a.compliance_posture!==b.compliance_posture)?3:0;
         const cveDelta=Math.abs((b.vulnerability_count||0)-(a.vulnerability_count||0));
-        const score=blindDelta*10+postureDiff*5+cveDelta;
-        pairs.push({oldId:a.session_id,newId:b.session_id,score});
+        const depDelta=Math.abs((b.component_count||0)-(a.component_count||0));
+        const score=blindDelta*10+postureDiff*5+cveDelta*2+depDelta;
+        // Skip pairs where nothing interesting changed
+        if(score === 0) continue;
+        pairs.push({oldId:a.session_id,newId:b.session_id,score,blindDelta,postureDiff});
       }
     }
 
-    // Sort by score, pick randomly from top 3 to vary the result
+    if(pairs.length === 0) throw new Error('No interesting differences between sessions yet');
+
+    // Sort by score, pick randomly from top 3
     pairs.sort((a,b)=>b.score-a.score);
     const topPairs=pairs.slice(0,Math.min(3,pairs.length));
     const picked=topPairs[Math.floor(Math.random()*topPairs.length)];
