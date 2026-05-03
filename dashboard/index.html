@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' http://192.168.133.238:8080 https://cdnjs.cloudflare.com; img-src *;">
 <title>ChainSight — Powered by IBM Bob</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -300,14 +301,17 @@ async function runDiff() {
   const n=document.getElementById('diff-new').value.trim();
   if(!o||!n){alert('Enter both session IDs');return;}
   const diffEl = document.getElementById('diff-result');
-  diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Comparing sessions...</div>';
-  diffEl.scrollIntoView({behavior:'smooth', block:'start'});
+  diffEl.innerHTML='<div style="color:#71717a;font-size:12px;padding:12px">Comparing ' + o + ' → ' + n + '...</div>';
+  setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
   try {
-    const r=await fetch(`${API}/diff/${o}/${n}`);
+    const r=await fetch(API+'/diff/'+o+'/'+n);
     if(!r.ok) throw new Error(await r.text());
-    renderDiff(await r.json());
+    const data = await r.json();
+    renderDiff(data);
+    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 100);
   } catch(e) {
-    document.getElementById('diff-result').innerHTML=`<div style="color:#ef4444;font-size:12px;padding:12px">Error: ${e.message}</div>`;
+    diffEl.innerHTML='<div style="color:#ef4444;font-size:12px;padding:12px">Error: '+e.message+'<br><small>Valid session IDs: test-001, fcdfce04, demo-final, clean-session, signed-demo, attested-001</small></div>';
+    setTimeout(()=>diffEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
   }
 }
 
