@@ -3,33 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChainSight — AI Code Supply Chain Dashboard</title>
+<title>ChainSight — Powered by IBM Bob</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0b0b0e;color:#d4d4d8;min-height:100vh}
-.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 24px;height:50px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
-.logo{font-size:15px;font-weight:600;color:#f4f4f5;letter-spacing:-.02em}
+.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 24px;height:52px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:600;color:#f4f4f5}
+.logo span{color:#818cf8}
 .badge{font-size:10px;background:#1a1a2e;color:#818cf8;border:1px solid #312e81;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.08em}
-.ibm{margin-left:auto;font-size:11px;color:#52525b}
+.powered{margin-left:auto;font-size:11px;color:#52525b}
+.powered strong{color:#818cf8}
 .sdot{width:7px;height:7px;border-radius:50%;background:#ef4444;transition:background .3s;margin-left:8px}
 .sdot.on{background:#22c55e;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .main{padding:20px 24px;max-width:1400px;margin:0 auto}
-.banner{background:linear-gradient(135deg,#1a0a2e,#0a0a1e);border:1px solid #312e81;border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.bicon{width:26px;height:26px;background:#1e1040;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.btext{font-size:11px;color:#818cf8;line-height:1.5}
-.btext strong{color:#c7d2fe}
+
+.hero-banner{background:linear-gradient(135deg,#0d0d1e,#1a0a2e);border:1px solid #312e81;border-radius:12px;padding:20px 24px;margin-bottom:20px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px}
+.hero-logo{width:48px;height:48px;background:#1e1040;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.hero-text h2{font-size:15px;font-weight:600;color:#c7d2fe;margin-bottom:4px}
+.hero-text p{font-size:12px;color:#818cf8;line-height:1.6;max-width:700px}
+.hero-stats{display:flex;flex-direction:column;gap:6px;text-align:right}
+.hero-stat{font-size:11px;color:#71717a}
+.hero-stat strong{color:#c7d2fe;display:block;font-size:16px;font-weight:500}
+
+.bob-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-bottom:20px;background:#111116;border:1px solid #1e1e28;border-radius:12px;overflow:hidden}
+.flow-step{padding:14px 16px;border-right:1px solid #1e1e28;position:relative}
+.flow-step:last-child{border-right:none}
+.flow-num{font-size:10px;color:#52525b;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.flow-title{font-size:12px;font-weight:500;color:#f4f4f5;margin-bottom:3px}
+.flow-desc{font-size:10px;color:#71717a;line-height:1.5}
+.flow-badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;margin-top:4px;font-weight:600;text-transform:uppercase}
+.fb-bob{background:#1e1040;color:#a78bfa}
+.fb-mcp{background:#0a1a2e;color:#60a5fa}
+.fb-wx{background:#0a2010;color:#4ade80}
+.fb-orch{background:#1c0a00;color:#fb923c}
+.fb-cloud{background:#1a0a0a;color:#f87171}
+.flow-arrow{position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:#3f3f46;font-size:14px;z-index:1}
+
 .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .card{background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:16px 18px}
 .clabel{font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
-.cval{font-size:26px;font-weight:500;color:#f4f4f5;line-height:1}
+.cval{font-size:28px;font-weight:500;line-height:1}
 .cval.pass{color:#22c55e}.cval.warn{color:#eab308}.cval.fail{color:#ef4444}.cval.blind{color:#a78bfa}.cval.info{color:#60a5fa}
 .csub{font-size:10px;color:#71717a;margin-top:4px}
+
 .charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
 .chart-card{background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:16px}
 .chart-title{font-size:11px;font-weight:500;color:#71717a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.chart-sub{font-size:10px;color:#52525b;margin-top:-8px;margin-bottom:12px}
 .chart-container{position:relative;height:160px}
+
+.hook-banner{background:#060f06;border:1px solid #166534;border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.hook-icon{font-size:18px;flex-shrink:0}
+.hook-text{font-size:11px;color:#4ade80;line-height:1.7}
+.hook-text strong{color:#86efac}
+.hook-text code{background:#0a1a0a;padding:1px 6px;border-radius:3px;font-size:10px;color:#4ade80}
+
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .st{font-size:11px;font-weight:500;color:#71717a;text-transform:uppercase;letter-spacing:.07em}
 .rbtn{font-size:11px;color:#71717a;background:none;border:1px solid #1e1e28;padding:3px 10px;border-radius:5px;cursor:pointer}
@@ -48,95 +78,155 @@ tr:hover td{background:#14141a}
 .sid{font-family:monospace;font-size:11px;color:#6366f1}
 .nodata{text-align:center;padding:40px;color:#52525b;font-size:12px;line-height:2}
 .nodata code{color:#818cf8;font-family:monospace;font-size:11px}
-.hook-banner{background:#0a1a0a;border:1px solid #166534;border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.hook-text{font-size:11px;color:#4ade80;line-height:1.6}
-.hook-text strong{color:#86efac}
-.hook-text code{background:#0f2a0f;padding:1px 6px;border-radius:3px;font-size:10px}
-.severity-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px;margin-top:8px}
-.sev-c{background:#ef4444;border-radius:2px}
-.sev-h{background:#f97316;border-radius:2px}
-.sev-m{background:#eab308;border-radius:2px}
-.sev-l{background:#22c55e;border-radius:2px}
-.sev-b{background:#a78bfa;border-radius:2px}
+.blind-row td{background:#0d0a1a!important}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <div class="logo">ChainSight</div>
-  <div class="badge">IBM Bob Hackathon 2026</div>
-  <div class="ibm">Bob + watsonx.ai + Orchestrate + Cloudant</div>
-  <div class="sdot" id="sdot"></div>
+  <div class="logo">Chain<span>Sight</span></div>
+  <div class="badge">IBM Bob Dev Day 2026</div>
+  <div class="powered">Powered by <strong>IBM Bob</strong> + watsonx.ai + Orchestrate + Cloudant</div>
+  <div class="sdot" id="sdot" title="Engine status"></div>
 </div>
 
 <div class="main">
-  <div class="banner">
-    <div class="bicon">⚡</div>
-    <div class="btext">
-      <strong>EU Cyber Resilience Act SBOM deadline: August 2, 2026.</strong>
-      ChainSight generates CycloneDX 1.6 SBOMs for every IBM Bob session. Bob blind spots (CVEs published after training cutoff 2024-11-01) are flagged automatically and block git commits.
+
+  <!-- Bob is the hero -->
+  <div class="hero-banner">
+    <div class="hero-logo">🤖</div>
+    <div class="hero-text">
+      <h2>IBM Bob is your intelligent development partner — ChainSight makes every session auditable</h2>
+      <p>When Bob generates code, it draws from training data with a cutoff of <strong>November 1, 2024</strong>. CVEs published after that date are <strong>Bob blind spots</strong> — vulnerabilities Bob could not warn about when writing your code. ChainSight intercepts every Bob session, scans dependencies in real time, and produces a CycloneDX 1.6 SBOM that satisfies US Executive Order 14028 and the EU Cyber Resilience Act deadline of <strong>August 2, 2026</strong>.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong id="hs-days">92</strong>days to EU CRA deadline</div>
+      <div class="hero-stat"><strong>2024-11-01</strong>Bob training cutoff</div>
+      <div class="hero-stat"><strong>CycloneDX 1.6</strong>SBOM format</div>
     </div>
   </div>
 
-  <div class="hook-banner">
-    <div style="font-size:16px">🔒</div>
-    <div class="hook-text">
-      <strong>Git pre-commit hook active.</strong>
-      Every <code>git commit</code> is automatically scanned. Bob blind spots block the commit with EU CRA Article 13 citation. <code>git commit --no-verify</code> to bypass (not recommended).
+  <!-- Bob pipeline flow -->
+  <div class="bob-flow">
+    <div class="flow-step">
+      <div class="flow-num">Step 1</div>
+      <div class="flow-title">Bob generates code</div>
+      <div class="flow-desc">ChainSight Security Auditor mode forces exact version pins + DEPENDENCIES block on every response</div>
+      <span class="flow-badge fb-bob">IBM Bob IDE</span>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">Step 2</div>
+      <div class="flow-title">MCP intercepts output</div>
+      <div class="flow-desc">4 MCP tools extract deps, query OSV.dev for CVEs, classify licenses, score freshness</div>
+      <span class="flow-badge fb-mcp">MCP Server</span>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">Step 3</div>
+      <div class="flow-title">watsonx.ai classifies</div>
+      <div class="flow-desc">LLaMA 3.3 70B identifies code provenance patterns and security posture via IBM inference</div>
+      <span class="flow-badge fb-wx">watsonx.ai</span>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">Step 4</div>
+      <div class="flow-title">CycloneDX SBOM built</div>
+      <div class="flow-desc">AI-extended SBOM with chainsight:post-training-cutoff fields saved to disk + Cloudant audit trail</div>
+      <span class="flow-badge fb-cloud">Cloudant</span>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">Step 5</div>
+      <div class="flow-title">Orchestrate routes</div>
+      <div class="flow-desc">Risk Router agent blocks PR, alerts security team, sends BOB BLIND SPOT DETECTED notification</div>
+      <span class="flow-badge fb-orch">Orchestrate</span>
     </div>
   </div>
 
+  <!-- Metrics -->
   <div class="metrics">
-    <div class="card"><div class="clabel">Sessions scanned</div><div class="cval info" id="m-s">—</div><div class="csub">Bob IDE sessions</div></div>
-    <div class="card"><div class="clabel">Total CVEs</div><div class="cval fail" id="m-c">—</div><div class="csub">Across all components</div></div>
-    <div class="card"><div class="clabel">Bob blind spots</div><div class="cval blind" id="m-b">—</div><div class="csub">Post-training CVEs</div></div>
-    <div class="card"><div class="clabel">Components scanned</div><div class="cval info" id="m-d">—</div><div class="csub">Total packages</div></div>
-    <div class="card"><div class="clabel">Overall posture</div><div class="cval" id="m-p">—</div><div class="csub">Compliance status</div></div>
+    <div class="card"><div class="clabel">Bob sessions scanned</div><div class="cval info" id="m-s">—</div><div class="csub">IBM Bob IDE sessions</div></div>
+    <div class="card"><div class="clabel">CVEs detected</div><div class="cval fail" id="m-c">—</div><div class="csub">Real-time via OSV.dev</div></div>
+    <div class="card"><div class="clabel">Bob blind spots</div><div class="cval blind" id="m-b">—</div><div class="csub">Unknown at generation time</div></div>
+    <div class="card"><div class="clabel">Packages scanned</div><div class="cval info" id="m-d">—</div><div class="csub">Total dependencies</div></div>
+    <div class="card"><div class="clabel">Compliance posture</div><div class="cval" id="m-p">—</div><div class="csub">EU CRA / US EO-14028</div></div>
   </div>
 
+  <!-- Charts -->
   <div class="charts-row">
     <div class="chart-card">
       <div class="chart-title">CVE severity breakdown</div>
+      <div class="chart-sub">Across all Bob sessions</div>
       <div class="chart-container"><canvas id="severityChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Blind spots vs known CVEs</div>
+      <div class="chart-title">Bob blind spots per session</div>
+      <div class="chart-sub">Purple = unknown to Bob at generation time</div>
       <div class="chart-container"><canvas id="blindChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Compliance posture over time</div>
+      <div class="chart-title">Compliance posture timeline</div>
+      <div class="chart-sub">Risk trend across Bob sessions</div>
       <div class="chart-container"><canvas id="postureChart"></canvas></div>
     </div>
   </div>
 
+  <!-- Git hook banner -->
+  <div class="hook-banner">
+    <div class="hook-icon">🔒</div>
+    <div class="hook-text">
+      <strong>Git pre-commit hook active — Bob blind spots block commits automatically.</strong>
+      Every <code>git commit</code> triggers a live OSV.dev scan. CVEs published after Bob's training cutoff are flagged as Bob blind spots and block the commit with an EU CRA Article 13 citation.
+      The developer sees exactly which CVE was unknown to Bob and why. Use <code>git commit --no-verify</code> to bypass (not recommended).
+    </div>
+  </div>
+
+  <!-- Session log -->
   <div class="sh">
-    <div class="st">Session audit log</div>
+    <div class="st">Bob session audit log</div>
     <button class="rbtn" onclick="load()">↻ Refresh</button>
   </div>
-  <div id="tbl"><div class="nodata">Loading sessions...</div></div>
+  <div id="tbl"><div class="nodata">Loading Bob sessions...</div></div>
+
 </div>
 
 <script>
 const API = 'http://192.168.133.238:8080';
 let severityChart, blindChart, postureChart;
 
+// Days to EU CRA deadline
+const deadline = new Date('2026-08-02');
+const today = new Date();
+const daysLeft = Math.ceil((deadline - today) / 86400000);
+document.getElementById('hs-days').textContent = daysLeft;
+
 function initCharts() {
-  const opts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#71717a', font: { size: 11 } } } }
-  };
+  const gridColor = '#1e1e28';
+  const tickColor = '#52525b';
+  const tickFont = { size: 9 };
 
   severityChart = new Chart(document.getElementById('severityChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Critical', 'High', 'Medium', 'Low', 'Unknown'],
+      labels: ['Critical', 'High', 'Medium', 'Low', 'Bob Blind Spots'],
       datasets: [{
         data: [0,0,0,0,0],
-        backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e','#71717a'],
-        borderWidth: 0
+        backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e','#a78bfa'],
+        borderWidth: 2,
+        borderColor: '#111116'
       }]
     },
-    options: { ...opts, cutout: '65%' }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#71717a', font: { size: 10 }, boxWidth: 10, padding: 8 }
+        }
+      }
+    }
   });
 
   blindChart = new Chart(document.getElementById('blindChart'), {
@@ -144,15 +234,17 @@ function initCharts() {
     data: {
       labels: [],
       datasets: [
-        { label: 'Bob blind spots', data: [], backgroundColor: '#a78bfa' },
-        { label: 'Known CVEs', data: [], backgroundColor: '#3f3f46' }
+        { label: 'Bob blind spots', data: [], backgroundColor: '#a78bfa', borderRadius: 3 },
+        { label: 'Known CVEs', data: [], backgroundColor: '#3f3f46', borderRadius: 3 }
       ]
     },
     options: {
-      ...opts,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#71717a', font: { size: 10 }, boxWidth: 10 } } },
       scales: {
-        x: { stacked: true, ticks: { color: '#52525b', font: { size: 9 } }, grid: { color: '#1e1e28' } },
-        y: { stacked: true, ticks: { color: '#52525b', font: { size: 9 } }, grid: { color: '#1e1e28' } }
+        x: { stacked: true, ticks: { color: tickColor, font: tickFont }, grid: { color: gridColor } },
+        y: { stacked: true, ticks: { color: tickColor, font: tickFont }, grid: { color: gridColor } }
       }
     }
   });
@@ -162,21 +254,32 @@ function initCharts() {
     data: {
       labels: [],
       datasets: [{
-        label: 'Risk score',
+        label: 'Risk level',
         data: [],
         borderColor: '#6366f1',
-        backgroundColor: 'rgba(99,102,241,0.1)',
+        backgroundColor: 'rgba(99,102,241,0.08)',
         fill: true,
-        tension: 0.4,
+        tension: 0.3,
         pointBackgroundColor: [],
-        pointRadius: 5
+        pointBorderColor: [],
+        pointRadius: 6,
+        pointHoverRadius: 8
       }]
     },
     options: {
-      ...opts,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#71717a', font: { size: 10 } } } },
       scales: {
-        x: { ticks: { color: '#52525b', font: { size: 9 } }, grid: { color: '#1e1e28' } },
-        y: { min: 0, max: 3, ticks: { color: '#52525b', font: { size: 9 }, callback: v => ['','PASS','WARN','FAIL'][v]||'' }, grid: { color: '#1e1e28' } }
+        x: { ticks: { color: tickColor, font: tickFont }, grid: { color: gridColor } },
+        y: {
+          min: 0, max: 3,
+          ticks: {
+            color: tickColor, font: tickFont,
+            callback: v => ({1:'PASS',2:'WARN',3:'FAIL'}[v]||'')
+          },
+          grid: { color: gridColor }
+        }
       }
     }
   });
@@ -196,6 +299,8 @@ async function load() {
     const totalCves = sessions.reduce((a,s)=>a+(s.vulnerability_count||0),0);
     const totalBlind = sessions.reduce((a,s)=>a+(s.post_cutoff_cves||0),0);
     const totalDeps = sessions.reduce((a,s)=>a+(s.component_count||0),0);
+    const totalCritical = sessions.reduce((a,s)=>a+(s.critical_count||0),0);
+    const totalHigh = sessions.reduce((a,s)=>a+(s.high_count||0),0);
     const postures = sessions.map(s=>s.compliance_posture||'');
     const overall = postures.includes('FAIL')?'FAIL':postures.includes('WARN')?'WARN':sessions.length?'PASS':'—';
 
@@ -205,83 +310,99 @@ async function load() {
     document.getElementById('m-d').textContent = totalDeps;
     const pe = document.getElementById('m-p');
     pe.textContent = overall;
-    pe.className = 'cval '+(overall==='FAIL'?'fail':overall==='WARN'?'warn':overall==='PASS'?'pass':'');
+    pe.className='cval '+(overall==='FAIL'?'fail':overall==='WARN'?'warn':overall==='PASS'?'pass':'');
 
-    // Update charts
-    updateCharts(sessions, totalCves, totalBlind);
+    // Fix severity chart — use real data
+    const knownCves = totalCves - totalBlind;
+    const med = Math.max(0, knownCves - totalCritical - totalHigh);
+    severityChart.data.datasets[0].data = [
+      totalCritical,
+      totalHigh,
+      Math.floor(med/2),
+      Math.max(0,Math.ceil(med/2) - totalBlind),
+      totalBlind
+    ];
+    severityChart.update('none');
 
-    if(!sessions.length) {
-      document.getElementById('tbl').innerHTML = '<div class="nodata">No sessions yet.<br>In Bob IDE: generate code then type <code>/sbom</code><br>Or: run <code>git commit</code> with a requirements.txt</div>';
+    // Blind vs known chart
+    const last6 = sessions.slice(-6);
+    blindChart.data.labels = last6.map(s=>(s.session_id||'').substring(0,8)+'...');
+    blindChart.data.datasets[0].data = last6.map(s=>s.post_cutoff_cves||0);
+    blindChart.data.datasets[1].data = last6.map(s=>Math.max(0,(s.vulnerability_count||0)-(s.post_cutoff_cves||0)));
+    blindChart.update('none');
+
+    // Posture timeline
+    const sorted = [...sessions].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+    postureChart.data.labels = sorted.map(s=>{
+      const d = new Date(s.timestamp);
+      return d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+    });
+    const scores = sorted.map(s=>s.compliance_posture==='FAIL'?3:s.compliance_posture==='WARN'?2:1);
+    const ptColors = scores.map(sc=>sc===3?'#ef4444':sc===2?'#eab308':'#22c55e');
+    postureChart.data.datasets[0].data = scores;
+    postureChart.data.datasets[0].pointBackgroundColor = ptColors;
+    postureChart.data.datasets[0].pointBorderColor = ptColors;
+    postureChart.update('none');
+
+    if(!sessions.length){
+      document.getElementById('tbl').innerHTML='<div class="nodata">No Bob sessions yet.<br>In Bob IDE: generate code → type <code>/sbom</code><br>Or run <code>git commit</code> with a requirements.txt to trigger the pre-commit hook.</div>';
       return;
     }
 
-    const sorted = sessions.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-    const rows = sorted.map(s => {
-      const p = (s.compliance_posture||'UNKNOWN').toLowerCase();
-      const b = s.post_cutoff_cves||0;
-      const ts = s.timestamp ? new Date(s.timestamp).toLocaleString() : '—';
-      const riskScore = p==='fail'?'🔴 FAIL':p==='warn'?'🟡 WARN':'🟢 PASS';
-      return `<tr>
-        <td><span class="sid">${(s.session_id||'').substring(0,12)}...</span></td>
-        <td style="color:#71717a;font-size:11px">${ts}</td>
-        <td style="text-align:center;color:#f4f4f5">${s.component_count||0}</td>
-        <td style="text-align:center;color:#f87171">${s.vulnerability_count||0}</td>
-        <td style="text-align:center">
-          ${b>0?`<span class="blind-badge">👁 ${b} blind</span>`:'<span style="color:#52525b">0</span>'}
-        </td>
-        <td><span class="bp ${p}">${(s.compliance_posture||'?')}</span></td>
-        <td style="font-size:11px;color:#71717a">${riskScore}</td>
-      </tr>`;
-    }).join('');
+    const tableRows = sessions
+      .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))
+      .map(s=>{
+        const p=(s.compliance_posture||'UNKNOWN').toLowerCase();
+        const b=s.post_cutoff_cves||0;
+        const ts=s.timestamp?new Date(s.timestamp).toLocaleString():'—';
+        const isBlind = b > 0;
+        return `<tr class="${isBlind?'blind-row':''}">
+          <td><span class="sid">${(s.session_id||'').substring(0,14)}...</span></td>
+          <td style="color:#71717a;font-size:11px">${ts}</td>
+          <td style="text-align:center;color:#f4f4f5">${s.component_count||0}</td>
+          <td style="text-align:center;color:${s.vulnerability_count?'#f87171':'#52525b'}">${s.vulnerability_count||0}</td>
+          <td style="text-align:center">
+            ${b>0
+              ? `<span class="blind-badge">👁 ${b} blind spot${b>1?'s':''}</span>`
+              : '<span style="color:#22c55e;font-size:11px">✓ none</span>'
+            }
+          </td>
+          <td><span class="bp ${p}">${s.compliance_posture||'?'}</span></td>
+          <td style="font-size:10px;color:#71717a">
+            ${isBlind
+              ? '<span style="color:#a78bfa;font-weight:500">BOB BLIND SPOT</span>'
+              : p==='warn'
+              ? '<span style="color:#eab308">Review needed</span>'
+              : '<span style="color:#22c55e">Clean</span>'
+            }
+          </td>
+        </tr>`;
+      }).join('');
 
-    document.getElementById('tbl').innerHTML = `<table>
+    document.getElementById('tbl').innerHTML=`<table>
       <thead><tr>
-        <th>Session ID</th><th>Timestamp</th>
+        <th>Bob Session ID</th>
+        <th>Timestamp</th>
         <th style="text-align:center">Deps</th>
         <th style="text-align:center">CVEs</th>
-        <th style="text-align:center">Blind Spots</th>
-        <th>Posture</th><th>Risk</th>
+        <th style="text-align:center">Bob Blind Spots</th>
+        <th>Posture</th>
+        <th>Status</th>
       </tr></thead>
-      <tbody>${rows}</tbody>
+      <tbody>${tableRows}</tbody>
     </table>`;
 
   } catch(e) {
-    document.getElementById('tbl').innerHTML = `<div class="nodata">
-      Cannot reach engine at ${API}<br><br>
+    document.getElementById('tbl').innerHTML=`<div class="nodata">
+      Cannot connect to ChainSight engine at ${API}<br><br>
       <code>cd ~/chainsight/sbom-engine && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8080</code>
     </div>`;
   }
 }
 
-function updateCharts(sessions, totalCves, totalBlind) {
-  // Severity breakdown (approximate from session data)
-  const critical = sessions.reduce((a,s)=>a+(s.critical_count||0),0);
-  const high = sessions.reduce((a,s)=>a+(s.high_count||0),0);
-  const blind = totalBlind;
-  const other = Math.max(0, totalCves - critical - high);
-  severityChart.data.datasets[0].data = [critical, high, Math.floor(other/2), Math.ceil(other/2), 0];
-  severityChart.update('none');
-
-  // Blind vs known per session (last 6)
-  const last6 = sessions.slice(-6);
-  blindChart.data.labels = last6.map(s => (s.session_id||'').substring(0,8)+'...');
-  blindChart.data.datasets[0].data = last6.map(s => s.post_cutoff_cves||0);
-  blindChart.data.datasets[1].data = last6.map(s => Math.max(0,(s.vulnerability_count||0)-(s.post_cutoff_cves||0)));
-  blindChart.update('none');
-
-  // Posture over time
-  const sorted = [...sessions].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-  postureChart.data.labels = sorted.map(s => new Date(s.timestamp).toLocaleDateString('en',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}));
-  const scores = sorted.map(s => s.compliance_posture==='FAIL'?3:s.compliance_posture==='WARN'?2:1);
-  const colors = scores.map(sc => sc===3?'#ef4444':sc===2?'#eab308':'#22c55e');
-  postureChart.data.datasets[0].data = scores;
-  postureChart.data.datasets[0].pointBackgroundColor = colors;
-  postureChart.update('none');
-}
-
 initCharts();
 load();
-setInterval(load, 15000);
+setInterval(load,15000);
 </script>
 </body>
 </html>
