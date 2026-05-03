@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ChainSight — Dependency Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b0e;color:#d4d4d8;font-family:-apple-system,sans-serif;overflow:hidden}
+.topbar{background:#111116;border-bottom:1px solid #1e1e28;padding:0 20px;height:48px;display:flex;align-items:center;gap:10px}
+.logo{font-size:14px;font-weight:600;color:#f4f4f5}.logo span{color:#818cf8}
+.controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+select{background:#0b0b0e;border:1px solid #2a2a35;color:#d4d4d8;padding:4px 8px;border-radius:5px;font-size:11px}
+.legend{display:flex;gap:12px;font-size:10px;color:#71717a}
+.leg{display:flex;align-items:center;gap:4px}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+#graph{width:100vw;height:calc(100vh - 48px)}
+.tooltip{position:absolute;background:#1a1a2e;border:1px solid #312e81;border-radius:8px;padding:10px 14px;font-size:11px;color:#d4d4d8;pointer-events:none;opacity:0;transition:opacity .15s;max-width:280px;z-index:100}
+.tooltip .tid{font-size:12px;font-weight:600;color:#c7d2fe;margin-bottom:6px}
+.tooltip .trow{display:flex;justify-content:space-between;gap:16px;margin-bottom:2px}
+.tooltip .tlabel{color:#71717a}
+.tooltip .tval{color:#f4f4f5}
+.tooltip .tblind{color:#a78bfa;font-weight:600}
+.tooltip .tcve{color:#f87171}
+.node-label{font-size:10px;fill:#a1a1aa;pointer-events:none}
+line{stroke:#2a2a3a;stroke-width:1.5}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">Chain<span>Sight</span> — Dependency Graph</div>
+  <div class="controls">
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>CRITICAL/FAIL</div>
+      <div class="leg"><div class="leg-dot" style="background:#a78bfa"></div>Bob blind spot</div>
+      <div class="leg"><div class="leg-dot" style="background:#f97316"></div>HIGH CVE</div>
+      <div class="leg"><div class="leg-dot" style="background:#eab308"></div>MEDIUM/LOW CVE</div>
+      <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>Clean</div>
+      <div class="leg"><div class="leg-dot" style="background:#6366f1"></div>Bob session</div>
+    </div>
+    <select id="session-select" onchange="loadSession(this.value)">
+      <option value="">Loading sessions...</option>
+    </select>
+  </div>
+</div>
+<div id="graph"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const API = 'http://192.168.133.238:8080';
+const tooltip = document.getElementById('tooltip');
+let simulation, svg, link, node, label;
+
+async function init() {
+  const r = await fetch(API + '/sessions');
+  const sessions = await r.json();
+  const sel = document.getElementById('session-select');
+  sel.innerHTML = sessions
+    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .map(s => `<option value="${s.session_id}">${s.session_id.substring(0,14)}... — ${s.compliance_posture} (${s.post_cutoff_cves||0} blind)</option>`)
+    .join('');
+  if (sessions.length > 0) {
+    // Pick most interesting session
+    const best = sessions.sort((a,b) => (b.post_cutoff_cves||0) - (a.post_cutoff_cves||0))[0];
+    sel.value = best.session_id;
+    loadSession(best.session_id);
+  }
+}
+
+async function loadSession(sessionId) {
+  if (!sessionId) return;
+  const r = await fetch(API + '/session/' + sessionId);
+  const sbom = await r.json();
+  buildGraph(sbom, sessionId);
+}
+
+function buildGraph(sbom, sessionId) {
+  d3.select('#graph').selectAll('*').remove();
+
+  const width = window.innerWidth;
+  const height = window.innerHeight - 48;
+
+  svg = d3.select('#graph')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+  // Add zoom
+  const g = svg.append('g');
+  svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', e => g.attr('transform', e.transform)));
+
+  const components = sbom.components || [];
+  const vulns = sbom.vulnerabilities || [];
+
+  // Build vuln map
+  const vulnMap = {};
+  vulns.forEach(v => {
+    const props = {};
+    (v.properties || []).forEach(p => props[p.name] = p.value);
+    const isBlind = props['chainsight:post-training-cutoff'] === 'true';
+    const affects = (v.affects || []).map(a => a.ref || '');
+    affects.forEach(ref => {
+      const pkg = ref.split('@')[0];
+      if (!vulnMap[pkg]) vulnMap[pkg] = {cves: 0, blind: 0, maxDays: 0};
+      vulnMap[pkg].cves++;
+      if (isBlind) {
+        vulnMap[pkg].blind++;
+        const days = parseInt(props['chainsight:days-after-cutoff'] || 0);
+        vulnMap[pkg].maxDays = Math.max(vulnMap[pkg].maxDays, days);
+      }
+    });
+  });
+
+  // Nodes: center = Bob session, surrounding = packages
+  const nodes = [
+    {
+      id: sessionId,
+      type: 'session',
+      label: 'Bob Session\n' + sessionId.substring(0, 10),
+      radius: 28,
+      color: '#6366f1'
+    },
+    ...components.map(c => {
+      const name = c.name || '';
+      const vdata = vulnMap[name] || {cves: 0, blind: 0, maxDays: 0};
+      const props = {};
+      (c.properties || []).forEach(p => props[p.name] = p.value);
+      let color = '#22c55e';
+      if (vdata.blind > 0) color = '#a78bfa';
+      else if (props['chainsight:severity'] === 'CRITICAL') color = '#ef4444';
+      else if (props['chainsight:severity'] === 'HIGH') color = '#f97316';
+      else if (vdata.cves > 0) color = '#eab308';
+      return {
+        id: name,
+        type: 'package',
+        label: name,
+        version: c.version || '',
+        license: c.licenses?.[0]?.license?.id || 'UNKNOWN',
+        cves: vdata.cves,
+        blind: vdata.blind,
+        maxDays: vdata.maxDays,
+        severity: props['chainsight:severity'] || 'NONE',
+        radius: 10 + (vdata.blind * 4) + (vdata.cves * 2),
+        color,
+        purl: c.purl || ''
+      };
+    })
+  ];
+
+  // Links: session -> all packages
+  const links = components.map(c => ({
+    source: sessionId,
+    target: c.name || ''
+  }));
+
+  // Force simulation
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+    .force('charge', d3.forceManyBody().strength(-300))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(d => d.radius + 15));
+
+  // Draw links
+  link = g.append('g')
+    .selectAll('line')
+    .data(links)
+    .join('line')
+    .style('stroke', d => {
+      const target = nodes.find(n => n.id === (typeof d.target === 'object' ? d.target.id : d.target));
+      if (target?.blind > 0) return '#4c1d95';
+      if (target?.cves > 0) return '#3f3f46';
+      return '#2a2a3a';
+    })
+    .style('stroke-width', d => {
+      const target = nodes.find(n => n.id === (typeof d.target === 'object' ? d.target.id : d.target));
+      return target?.blind > 0 ? 2.5 : 1.5;
+    })
+    .style('stroke-dasharray', d => {
+      const target = nodes.find(n => n.id === (typeof d.target === 'object' ? d.target.id : d.target));
+      return target?.blind > 0 ? 'none' : '4,3';
+    });
+
+  // Draw nodes
+  node = g.append('g')
+    .selectAll('circle')
+    .data(nodes)
+    .join('circle')
+    .attr('r', d => d.radius)
+    .attr('fill', d => d.color)
+    .attr('fill-opacity', d => d.type === 'session' ? 0.9 : 0.75)
+    .attr('stroke', d => d.blind > 0 ? '#a78bfa' : d.color)
+    .attr('stroke-width', d => d.blind > 0 ? 3 : 1.5)
+    .style('cursor', 'pointer')
+    .on('mouseover', showTooltip)
+    .on('mousemove', moveTooltip)
+    .on('mouseout', hideTooltip)
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag', dragged)
+      .on('end', dragEnd));
+
+  // Labels
+  label = g.append('g')
+    .selectAll('text')
+    .data(nodes)
+    .join('text')
+    .attr('class', 'node-label')
+    .attr('text-anchor', 'middle')
+    .attr('dy', d => d.radius + 14)
+    .text(d => d.type === 'session' ? 'BOB SESSION' : d.label)
+    .style('font-size', d => d.type === 'session' ? '11px' : '9px')
+    .style('fill', d => d.type === 'session' ? '#818cf8' : d.blind > 0 ? '#a78bfa' : '#52525b')
+    .style('font-weight', d => d.blind > 0 ? 'bold' : 'normal');
+
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y);
+    node.attr('cx', d => d.x).attr('cy', d => d.y);
+    label.attr('x', d => d.x).attr('y', d => d.y);
+  });
+}
+
+function showTooltip(event, d) {
+  if (d.type === 'session') {
+    tooltip.innerHTML = `<div class="tid">Bob Session: ${d.id}</div>`;
+  } else {
+    const blindLine = d.blind > 0
+      ? `<div class="trow"><span class="tlabel">Bob blind spots</span><span class="tblind">👁 ${d.blind} (${d.maxDays} days post-cutoff)</span></div>`
+      : '';
+    tooltip.innerHTML = `
+      <div class="tid">${d.id}</div>
+      <div class="trow"><span class="tlabel">Version</span><span class="tval">${d.version}</span></div>
+      <div class="trow"><span class="tlabel">License</span><span class="tval">${d.license}</span></div>
+      <div class="trow"><span class="tlabel">CVEs</span><span class="${d.cves > 0 ? 'tcve' : 'tval'}">${d.cves}</span></div>
+      ${blindLine}
+      <div class="trow"><span class="tlabel">Severity</span><span class="tval">${d.severity}</span></div>
+    `;
+  }
+  tooltip.style.opacity = '1';
+}
+
+function moveTooltip(event) {
+  tooltip.style.left = (event.pageX + 12) + 'px';
+  tooltip.style.top = (event.pageY - 20) + 'px';
+}
+
+function hideTooltip() {
+  tooltip.style.opacity = '0';
+}
+
+function dragStart(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+
+function dragged(event, d) {
+  d.fx = event.x; d.fy = event.y;
+}
+
+function dragEnd(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+init();
+</script>
+</body>
+</html>

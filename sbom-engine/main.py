@@ -253,3 +253,24 @@ async def verify_session(session_id: str):
         sbom = json.load(f)
     result = verify_sbom(sbom)
     return {'session_id': session_id, **result}
+
+
+# ─── License Policy endpoints ─────────────────────────────────────────────────
+
+from license_policy import check_license_policy, POLICIES
+
+@app.get('/policy/{session_id}')
+async def check_policy(session_id: str, policy: str = 'commercial'):
+    """Check a session's components against a license policy."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    result = check_license_policy(sbom.get('components', []), policy)
+    return result
+
+@app.get('/policies')
+async def list_policies():
+    """List available license policies."""
+    return {k: {'name': v['name'], 'description': v['description']} for k, v in POLICIES.items()}
