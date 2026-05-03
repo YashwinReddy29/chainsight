@@ -1,0 +1,629 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:60562dcb-e34b-49fb-bd54-ab76c4f18a5d",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-03T07:31:54.365912+00:00",
+    "tools": [
+      {
+        "vendor": "IBM",
+        "name": "Bob",
+        "version": "1.0"
+      },
+      {
+        "vendor": "ChainSight",
+        "name": "ChainSight SBOM Engine",
+        "version": "1.0.0"
+      }
+    ],
+    "properties": [
+      {
+        "name": "chainsight:session-id",
+        "value": "microservices-scan"
+      },
+      {
+        "name": "chainsight:generation-method",
+        "value": "AI-assisted (IBM Bob)"
+      },
+      {
+        "name": "chainsight:training-cutoff",
+        "value": "2024-11-01"
+      },
+      {
+        "name": "chainsight:sbom-type",
+        "value": "AI-Generated Code SBOM"
+      },
+      {
+        "name": "ai:tool-name",
+        "value": "IBM Bob"
+      },
+      {
+        "name": "ai:regulation-compliance",
+        "value": "EU-AI-Act-Article-11,US-EO-14028"
+      },
+      {
+        "name": "chainsight:attestation",
+        "value": "{\"algorithm\": \"HMAC-SHA256\", \"signature\": \"HX/R5QMBjkii8c4uYsTE8V6O7sfrr9Vz5rK/gZYyelU=\", \"content_hash\": \"81f9528e4f9c08b6ac87cfbfb814e0b9405048f9dd83f63a00daff94d7cf72a5\", \"signed_at\": \"2026-05-03T07:31:54.366163+00:00\", \"signed_by\": \"ChainSight v1.0 \\u2014 IBM Bob Dev Day 2026\", \"key_id\": \"b0c3f1ff9701ec99\", \"fields_signed\": [\"serialNumber\", \"components\", \"vulnerabilities\"], \"compliance\": \"US-EO-14028, EU-CRA-Article-13\"}"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "PyJWT@2.8.0",
+      "name": "PyJWT",
+      "version": "2.8.0",
+      "purl": "pkg:pypi/PyJWT@2.8.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pandas@2.1.4",
+      "name": "pandas",
+      "version": "2.1.4",
+      "purl": "pkg:pypi/pandas@2.1.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "sqlalchemy@2.0.27",
+      "name": "sqlalchemy",
+      "version": "2.0.27",
+      "purl": "pkg:pypi/sqlalchemy@2.0.27",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastapi@0.111.0",
+      "name": "fastapi",
+      "version": "0.111.0",
+      "purl": "pkg:pypi/fastapi@0.111.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "NONE"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "0"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "python-multipart@0.0.9",
+      "name": "python-multipart",
+      "version": "0.0.9",
+      "purl": "pkg:pypi/python-multipart@0.0.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "3"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "3"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "requests@2.32.3",
+      "name": "requests",
+      "version": "2.32.3",
+      "purl": "pkg:pypi/requests@2.32.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:ecosystem",
+          "value": "PyPI"
+        },
+        {
+          "name": "chainsight:ai-generated",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:ai-tool",
+          "value": "IBM Bob"
+        },
+        {
+          "name": "chainsight:session-id",
+          "value": "microservices-scan"
+        },
+        {
+          "name": "chainsight:cve-count",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:severity",
+          "value": "MEDIUM"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:post-cutoff-cves",
+          "value": "2"
+        },
+        {
+          "name": "chainsight:provenance-confidence",
+          "value": "0.85"
+        },
+        {
+          "name": "chainsight:provenance-summary",
+          "value": "API development using fastapi"
+        },
+        {
+          "name": "ai:generation-method",
+          "value": "AI-assisted (IBM Bob)"
+        },
+        {
+          "name": "ai:training-cutoff",
+          "value": "2024-11-01"
+        }
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "bom-ref": "vuln-GHSA-wp53-j4wj-2cfg-python-multipart",
+      "id": "GHSA-wp53-j4wj-2cfg",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-wp53-j4wj-2cfg"
+      },
+      "description": "Arbitrary file write",
+      "published": "2026-01-26T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "451"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: 451 days after cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-59g5-xgcq-4qw3-python-multipart",
+      "id": "GHSA-59g5-xgcq-4qw3",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-59g5-xgcq-4qw3"
+      },
+      "description": "DoS via malformed multipart",
+      "published": "2025-01-15T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "75"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: 75 days after cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-mj87-hwqh-73pj-python-multipart",
+      "id": "GHSA-mj87-hwqh-73pj",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-mj87-hwqh-73pj"
+      },
+      "description": "Content-Type header bypass",
+      "published": "2026-04-15T00:00:00Z",
+      "affects": [
+        {
+          "ref": "python-multipart@0.0.9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "530"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: 530 days after cutoff"
+        }
+      ],
+      "recommendation": "Upgrade python-multipart to 0.0.18 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-9hjg-9r4m-mvj7-requests",
+      "id": "GHSA-9hjg-9r4m-mvj7",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-9hjg-9r4m-mvj7"
+      },
+      "description": "Credentials leak",
+      "published": "2025-06-09T00:00:00Z",
+      "affects": [
+        {
+          "ref": "requests@2.32.3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "220"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "HIGH"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: 220 days after cutoff"
+        }
+      ],
+      "recommendation": "Upgrade requests to 2.32.4 or later"
+    },
+    {
+      "bom-ref": "vuln-GHSA-gc5v-m9x4-r6x2-requests",
+      "id": "GHSA-gc5v-m9x4-r6x2",
+      "source": {
+        "name": "OSV",
+        "url": "https://osv.dev/vulnerability/GHSA-gc5v-m9x4-r6x2"
+      },
+      "description": "Temp file reuse",
+      "published": "2026-03-25T00:00:00Z",
+      "affects": [
+        {
+          "ref": "requests@2.32.3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "chainsight:post-training-cutoff",
+          "value": "true"
+        },
+        {
+          "name": "chainsight:days-after-cutoff",
+          "value": "509"
+        },
+        {
+          "name": "chainsight:bob-awareness",
+          "value": "UNKNOWN_AT_GENERATION"
+        },
+        {
+          "name": "chainsight:freshness-risk",
+          "value": "CRITICAL"
+        },
+        {
+          "name": "chainsight:message",
+          "value": "BOB BLIND SPOT: 509 days after cutoff"
+        }
+      ],
+      "recommendation": "Upgrade requests to 2.32.4 or later"
+    }
+  ]
+}
