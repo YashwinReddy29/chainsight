@@ -160,6 +160,30 @@ tr.blind-row td{background:#0d0a1a}
     </div>
   </div>
 
+  <!-- Bob Session Metrics -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px" id="bob-metrics">
+    <div class="card" style="border-color:#312e81">
+      <div class="clabel" style="color:#818cf8">Bob sessions today</div>
+      <div class="cval info" id="bm-today">—</div>
+      <div class="csub">Generated today</div>
+    </div>
+    <div class="card" style="border-color:#312e81">
+      <div class="clabel" style="color:#818cf8">Avg deps per session</div>
+      <div class="cval info" id="bm-avgdeps">—</div>
+      <div class="csub">Packages per Bob session</div>
+    </div>
+    <div class="card" style="border-color:#312e81">
+      <div class="clabel" style="color:#818cf8">Blind spot rate</div>
+      <div class="cval blind" id="bm-rate">—</div>
+      <div class="csub">% sessions with blind spots</div>
+    </div>
+    <div class="card" style="border-color:#312e81">
+      <div class="clabel" style="color:#818cf8">Trending alerts</div>
+      <div class="cval warn" id="bm-trends">—</div>
+      <div class="csub">Packages with rising risk</div>
+    </div>
+  </div>
+
   <div class="hook">
     <div style="font-size:18px">🔒</div>
     <div class="hook-text">
@@ -304,7 +328,7 @@ async function loadSessions() {
         <td style="font-size:10px">${b>0?'<span style="color:#a78bfa;font-weight:500">BOB BLIND SPOT</span>':p==='warn'?'<span style="color:#eab308">Review needed</span>':'<span style="color:#22c55e">Clean</span>'}</td>
         <td style="white-space:nowrap">
           ${b>0 ? `<button onclick="aiAssess('${s.session_id}')" style="font-size:9px;background:#0a2010;color:#4ade80;border:1px solid #166534;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">AI Risk</button><button onclick="getFix('${s.session_id}')" style="font-size:9px;background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:4px">Auto-fix</button>` : ''}
-          <a href="http://192.168.133.238:8080/report/${s.session_id}/pdf" target="_blank" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;text-decoration:none;margin-right:2px">PDF</a><a href="http://192.168.133.238:8080/bundle/${s.session_id}" style="font-size:9px;background:#0a1a0a;color:#4ade80;border:1px solid #166534;padding:2px 7px;border-radius:3px;text-decoration:none">ZIP</a>
+          <button onclick="replaySession('${s.session_id}')" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;cursor:pointer;margin-right:2px">↻ Replay</button><a href="http://192.168.133.238:8080/report/${s.session_id}/pdf" target="_blank" style="font-size:9px;background:#0a1a2e;color:#60a5fa;border:1px solid #1e3a5f;padding:2px 7px;border-radius:3px;text-decoration:none;margin-right:2px">PDF</a><a href="http://192.168.133.238:8080/bundle/${s.session_id}" style="font-size:9px;background:#0a1a0a;color:#4ade80;border:1px solid #166534;padding:2px 7px;border-radius:3px;text-decoration:none">ZIP</a>
         </td>
       </tr>`;
     }).join('');
@@ -513,6 +537,54 @@ async function runPolicyCheck() {
     res.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:8px">Error: ${e.message}</div>`;
   }
 }
+async function replaySession(sid) {
+  const res = document.getElementById('diff-result');
+  res.scrollIntoView({behavior:'smooth'});
+  res.innerHTML = '<div style="color:#60a5fa;padding:12px;font-size:12px">Re-scanning ' + sid + ' against current CVE database...</div>';
+  try {
+    const r = await fetch('http://192.168.133.238:8080/replay/' + sid, {method:'POST'});
+    const d = await r.json();
+    const hasNew = d.new_cves_since_original_scan > 0;
+    const color = d.new_blind_spots_since_original_scan > 0 ? '#a78bfa' : hasNew ? '#eab308' : '#22c55e';
+    let html = `<div class="diff-card">
+      <div style="font-size:13px;font-weight:600;color:${color};margin-bottom:10px">Session Replay — ${sid}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#60a5fa">${d.original_component_count}</div>
+          <div style="font-size:10px;color:#71717a">Components</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#f87171">${d.original_vuln_count}</div>
+          <div style="font-size:10px;color:#71717a">Original CVEs</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:${hasNew?'#eab308':'#22c55e'}">${d.new_cves_since_original_scan}</div>
+          <div style="font-size:10px;color:#71717a">New since scan</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:${d.new_blind_spots_since_original_scan>0?'#a78bfa':'#22c55e'}">${d.new_blind_spots_since_original_scan}</div>
+          <div style="font-size:10px;color:#71717a">New blind spots</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:${color};padding:8px;background:${color}11;border-radius:6px;border-left:3px solid ${color}">${d.message}</div>`;
+    if (d.new_cves && d.new_cves.length > 0) {
+      html += '<div style="margin-top:12px"><div style="font-size:10px;color:#71717a;margin-bottom:6px;text-transform:uppercase">New CVEs discovered since original scan</div>';
+      d.new_cves.forEach(c => {
+        const bc = c.is_blind ? '#a78bfa' : '#eab308';
+        html += `<div style="background:#0b0b0e;border-radius:6px;padding:8px;margin-bottom:4px;font-size:11px">
+          <span style="color:${bc};font-weight:600">${c.id}</span>
+          ${c.is_blind ? `<span style="color:#a78bfa;margin-left:8px">👁 +${c.days_after_cutoff} days after cutoff</span>` : ''}
+          <span style="color:#71717a;margin-left:8px">in ${c.package}==${c.version}</span>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+    res.innerHTML = html;
+  } catch(e) {
+    res.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:12px">Error: ' + e.message + '</div>';
+  }
+}
 async function aiAssess(sid) {
   const res = document.getElementById('diff-result');
   res.scrollIntoView({behavior:'smooth'});
@@ -718,6 +790,52 @@ async function getFix(sid) {
   }
 
   connectWS();
+
+  async function loadBobMetrics() {
+    try {
+      const [sr, tr] = await Promise.all([
+        fetch(API + '/sessions'),
+        fetch(API + '/trends')
+      ]);
+      const sessions = await sr.json();
+      const trends = await tr.json();
+
+      const today = new Date().toDateString();
+      const todaySessions = sessions.filter(s =>
+        s.timestamp && new Date(s.timestamp).toDateString() === today
+      ).length;
+
+      const avgDeps = sessions.length > 0
+        ? Math.round(sessions.reduce((a,s) => a+(s.component_count||0), 0) / sessions.length)
+        : 0;
+
+      const failSessions = sessions.filter(s => (s.post_cutoff_cves||0) > 0).length;
+      const blindRate = sessions.length > 0
+        ? Math.round((failSessions / sessions.length) * 100)
+        : 0;
+
+      document.getElementById('bm-today').textContent = todaySessions;
+      document.getElementById('bm-avgdeps').textContent = avgDeps;
+      document.getElementById('bm-rate').textContent = blindRate + '%';
+      document.getElementById('bm-trends').textContent = trends.total_alerts || 0;
+
+      // Show trending alert if any
+      if (trends.total_alerts > 0) {
+        const topAlert = trends.alerts[0];
+        const existing = document.getElementById('trend-alert');
+        if (!existing) {
+          const div = document.createElement('div');
+          div.id = 'trend-alert';
+          div.style.cssText = 'background:#1c1700;border:1px solid #713f12;border-radius:10px;padding:12px 18px;margin-bottom:16px;font-size:11px;color:#fbbf24';
+          div.innerHTML = `⚠ Trending Alert: <strong>${topAlert.package}</strong> risk increasing — +${topAlert.blind_delta} blind spots across sessions. ${topAlert.message}`;
+          document.getElementById('bob-metrics').after(div);
+        }
+      }
+    } catch(e) {}
+  }
+  loadBobMetrics();
+  setInterval(loadBobMetrics, 30000);
+
 
 initCharts();
 loadSessions();
