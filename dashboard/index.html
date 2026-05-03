@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' http://192.168.133.238:8080 https://cdnjs.cloudflare.com; connect-src *;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' http://192.168.133.238:8080 https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; connect-src *;">
 <title>ChainSight — Powered by IBM Bob</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
@@ -552,7 +552,7 @@ async function getFix(sid) {
 }
   let scoreChart;
   const scoreChartEl = document.getElementById('scoreChart');
-  if (scoreChartEl) {
+  if (scoreChartEl && typeof Chart !== 'undefined') {
     scoreChart = new Chart(scoreChartEl, {
       type: 'line',
       data: {
