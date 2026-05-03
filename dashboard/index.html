@@ -277,15 +277,11 @@ async function loadSessions() {
           .join('');
     }
     // Populate policy session dropdown
-    const policySessionSel = document.getElementById('policy-session');
-    if (policySessionSel) {
-      policySessionSel.innerHTML = '<option value="">Select session...</option>' +
-        sessions.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))
-          .map(s => `<option value="${s.session_id}">${s.session_id.substring(0,14)}... (${s.compliance_posture})</option>`)
-          .join('');
-    }
     const pe=document.getElementById('m-p');
     pe.textContent=op;
+    // Populate policy session dropdown
+    const polSel=document.getElementById('policy-session');
+    if(polSel) polSel.innerHTML='<option value="">Select session...</option>'+sessions.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).map(s=>`<option value="${s.session_id}">${s.session_id.substring(0,14)}... (${s.compliance_posture})</option>`).join('');
     pe.className='cval '+(op==='FAIL'?'fail':op==='WARN'?'warn':op==='PASS'?'pass':'');
     const known=tc-tb;
     sevChart.data.datasets[0].data=[crit,high,Math.max(0,known-crit-high),0,tb];
