@@ -73,9 +73,9 @@ Write a 2-3 sentence plain English risk assessment explaining:
 2. What the business impact could be
 3. What to do immediately
 
-Be specific, professional, and direct. Do not use bullet points. Write as flowing sentences.
+Be specific, professional, and direct. Write exactly 3 sentences as flowing prose. Stop after the third sentence.
 
-Risk assessment:"""
+Assessment:"""
 
     try:
         if not WATSONX_API_KEY or not PROJECT_ID:
@@ -96,10 +96,28 @@ Risk assessment:"""
         response = model.generate_text(prompt=prompt)
         assessment = response.strip()
 
-        # Clean up common LLaMA artifacts
-        for prefix in ['Risk assessment:', 'Assessment:', 'Here is']:
+        # Clean up LLaMA artifacts
+        for prefix in ['Risk assessment:', 'Assessment:', 'Here is', 'Note:']:
             if assessment.lower().startswith(prefix.lower()):
                 assessment = assessment[len(prefix):].strip()
+
+        # Take only first 3 sentences — stop repetition
+        import re
+        sentences = re.split(r'(?<=[.!?])\s+', assessment)
+        # Remove any sentence that starts with "Note:" or repeats
+        clean = []
+        seen_starts = set()
+        for s in sentences:
+            start = s[:30].lower()
+            if start in seen_starts:
+                break
+            if s.lower().startswith('note:'):
+                break
+            seen_starts.add(start)
+            clean.append(s)
+            if len(clean) >= 3:
+                break
+        assessment = ' '.join(clean)
 
         return {
             'session_id': session_id,
