@@ -406,3 +406,132 @@ setInterval(load,15000);
 </script>
 </body>
 </html>
+<script>
+// Inject diff panel after existing script
+const origLoad = load;
+window.addEventListener('load', () => {
+  const tbl = document.getElementById('tbl');
+  if (tbl) {
+    const diffSection = document.createElement('div');
+    diffSection.innerHTML = `
+      <div style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:500;color:#71717a;text-transform:uppercase;letter-spacing:.07em">SBOM Diff — Compare Bob Sessions</div>
+        </div>
+        <div style="background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;color:#71717a;margin-bottom:4px">Session A (older)</div>
+            <input id="diff-old" placeholder="e.g. test-001" style="background:#0b0b0e;border:1px solid #2a2a35;border-radius:6px;padding:6px 10px;color:#f4f4f5;font-size:12px;width:160px;font-family:monospace">
+          </div>
+          <div>
+            <div style="font-size:10px;color:#71717a;margin-bottom:4px">Session B (newer)</div>
+            <input id="diff-new" placeholder="e.g. demo-final" style="background:#0b0b0e;border:1px solid #2a2a35;border-radius:6px;padding:6px 10px;color:#f4f4f5;font-size:12px;width:160px;font-family:monospace">
+          </div>
+          <button onclick="runDiff()" style="background:#1e1040;color:#a78bfa;border:1px solid #4c1d95;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">Compare Sessions →</button>
+          <button onclick="runLatestDiff()" style="background:#0a1a0a;color:#4ade80;border:1px solid #166534;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer">Latest diff</button>
+        </div>
+        <div id="diff-result" style="margin-top:12px"></div>
+      </div>
+    `;
+    tbl.parentNode.appendChild(diffSection);
+  }
+});
+
+async function runLatestDiff() {
+  document.getElementById('diff-result').innerHTML = '<div style="color:#71717a;font-size:12px;padding:12px">Loading latest diff...</div>';
+  try {
+    const r = await fetch('http://192.168.133.238:8080/diff/latest');
+    if (!r.ok) throw new Error(await r.text());
+    const d = await r.json();
+    renderDiff(d);
+  } catch(e) {
+    document.getElementById('diff-result').innerHTML = `<div style="color:#ef4444;font-size:12px;padding:12px">Error: ${e.message}</div>`;
+  }
+}
+
+async function runDiff() {
+  const oldId = document.getElementById('diff-old').value.trim();
+  const newId = document.getElementById('diff-new').value.trim();
+  if (!oldId || !newId) { alert('Enter both session IDs'); return; }
+  document.getElementById('diff-result').innerHTML = '<div style="color:#71717a;font-size:12px;padding:12px">Comparing sessions...</div>';
+  try {
+    const r = await fetch(\`http://192.168.133.238:8080/diff/\${oldId}/\${newId}\`);
+    if (!r.ok) throw new Error(await r.text());
+    const d = await r.json();
+    renderDiff(d);
+  } catch(e) {
+    document.getElementById('diff-result').innerHTML = \`<div style="color:#ef4444;font-size:12px;padding:12px">Error: \${e.message}</div>\`;
+  }
+}
+
+function renderDiff(d) {
+  const s = d.summary;
+  const postureColor = s.posture_new === 'FAIL' ? '#ef4444' : s.posture_new === 'WARN' ? '#eab308' : '#22c55e';
+  const deltaColor = s.blind_spot_delta > 0 ? '#ef4444' : s.blind_spot_delta < 0 ? '#22c55e' : '#71717a';
+
+  let newBlindHtml = '';
+  if (d.new_blind_spots && d.new_blind_spots.length > 0) {
+    newBlindHtml = '<div style="margin-top:12px;background:#0d0a1a;border:1px solid #4c1d95;border-radius:8px;padding:12px">';
+    newBlindHtml += '<div style="font-size:11px;font-weight:600;color:#a78bfa;margin-bottom:8px">👁 NEW BOB BLIND SPOTS INTRODUCED</div>';
+    d.new_blind_spots.forEach(v => {
+      newBlindHtml += \`<div style="margin-bottom:8px;padding:8px;background:#0a0818;border-radius:6px">
+        <div style="font-size:12px;color:#c084fc;font-weight:500">\${v.id}</div>
+        <div style="font-size:11px;color:#71717a;margin-top:2px">\${v.description ? v.description.substring(0,120) : 'No description'}...</div>
+        <div style="font-size:11px;color:#a78bfa;margin-top:2px">Published \${v.days_after_cutoff} days after Bob training cutoff</div>
+        \${v.recommendation ? \`<div style="font-size:11px;color:#4ade80;margin-top:2px">Fix: \${v.recommendation}</div>\` : ''}
+      </div>\`;
+    });
+    newBlindHtml += '</div>';
+  }
+
+  let addedHtml = '';
+  if (d.added_packages && d.added_packages.length > 0) {
+    addedHtml = d.added_packages.map(p => {
+      const risk = p.cve_count > 0
+        ? \`<span style="color:#f87171">\${p.cve_count} CVE(s)</span>\`
+        : '<span style="color:#22c55e">Clean</span>';
+      const blind = p.post_cutoff_cves > 0
+        ? \`<span style="color:#a78bfa;margin-left:8px">👁 \${p.post_cutoff_cves} blind</span>\`
+        : '';
+      return \`<span style="font-family:monospace;font-size:11px;background:#0b0b0e;padding:2px 8px;border-radius:4px;margin:2px;display:inline-block;color:#c7d2fe">\${p.name}==\${p.version} \${risk}\${blind}</span>\`;
+    }).join('');
+  }
+
+  document.getElementById('diff-result').innerHTML = \`
+    <div style="background:#111116;border:1px solid #1e1e28;border-radius:10px;padding:16px">
+      <div style="font-size:12px;font-weight:500;color:#f4f4f5;margin-bottom:12px">
+        Diff: <span style="font-family:monospace;color:#6366f1">\${d.session_old}</span>
+        → <span style="font-family:monospace;color:#6366f1">\${d.session_new}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#60a5fa">+\${s.packages_added}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">Packages added</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#71717a">-\${s.packages_removed}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">Removed</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#f87171">+\${s.new_cves}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">New CVEs</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:#22c55e">-\${s.fixed_cves}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">CVEs fixed</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:\${deltaColor}">\${s.blind_spot_delta >= 0 ? '+' : ''}\${s.blind_spot_delta}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">Blind spot Δ</div>
+        </div>
+        <div style="background:#0b0b0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:18px;font-weight:500;color:\${postureColor}">\${s.posture_new}</div>
+          <div style="font-size:10px;color:#71717a;margin-top:2px">New posture</div>
+        </div>
+      </div>
+      \${newBlindHtml}
+      \${addedHtml ? \`<div style="margin-top:12px"><div style="font-size:10px;color:#71717a;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">Packages added by Bob</div>\${addedHtml}</div>\` : ''}
+    </div>
+  \`;
+}
+</script>

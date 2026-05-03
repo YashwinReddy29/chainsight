@@ -114,3 +114,38 @@ async def session(session_id: str):
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host='0.0.0.0', port=int(os.getenv('SBOM_ENGINE_PORT', 8080)))
+
+
+# ─── SBOM Diff endpoint ───────────────────────────────────────────────────────
+
+from sbom_diff import diff_sboms, format_diff_report
+
+@app.get('/diff/{session_old}/{session_new}')
+async def diff_sessions(session_old: str, session_new: str, format: str = 'json'):
+    """
+    Compare two Bob sessions and return what changed.
+    format=json returns structured diff
+    format=markdown returns human-readable report
+    """
+    try:
+        diff = diff_sboms(session_old, session_new)
+        if format == 'markdown':
+            return {'report': format_diff_report(diff)}
+        return diff
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/diff/latest')
+async def diff_latest_sessions():
+    """Compare the two most recent Bob sessions automatically."""
+    sessions = get_all_sessions()
+    if len(sessions) < 2:
+        raise HTTPException(status_code=400, detail='Need at least 2 sessions to diff')
+    sorted_sessions = sorted(sessions, key=lambda s: s.get('timestamp', ''))
+    old = sorted_sessions[-2]['session_id']
+    new = sorted_sessions[-1]['session_id']
+    diff = diff_sboms(old, new)
+    return diff
