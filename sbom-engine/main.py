@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 from provenance_classifier import classify_provenance
 from cyclonedx_generator import generate_sbom, assess_posture
 from cloudant_client import save_sbom_audit, get_all_sessions
+from slack_notifier import send_blind_spot_alert, send_pass_notification
+from sbom_attestor import sign_sbom, verify_sbom
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -74,11 +76,26 @@ async def generate(req: GenerateSBOMRequest):
 
         stats = {'post_cutoff_cves': post_cutoff, 'critical_count': critical, 'high_count': high}
 
+        # Sign the SBOM for integrity verification
+        sbom = sign_sbom(sbom)
+
         sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
         with open(sbom_path, 'w') as f:
             json.dump(sbom, f, indent=2)
 
         saved = save_sbom_audit(session_id, sbom, posture, stats)
+
+        # Send Slack notification
+        blind_vuln_list = [v for v in sbom.get('vulnerabilities', [])
+                          if any(p['name'] == 'chainsight:post-training-cutoff' and p['value'] == 'true'
+                                 for p in v.get('properties', []))]
+        if blind_vuln_list:
+            from auto_fix import generate_fixes
+            fixes_for_slack = generate_fixes(sbom)
+            send_blind_spot_alert(session_id, blind_vuln_list, posture, fixes_for_slack.get('fixes', []))
+        elif posture == 'PASS':
+            send_pass_notification(session_id, len(sbom.get('components', [])))
+
 
         return {
             'success': True,
@@ -222,3 +239,17 @@ async def get_pdf_report(session_id: str):
         media_type='application/pdf',
         headers={'Content-Disposition': f'attachment; filename="chainsight-{session_id}.pdf"'}
     )
+
+
+# ─── Attestation endpoints ─────────────────────────────────────────────────────
+
+@app.get('/verify/{session_id}')
+async def verify_session(session_id: str):
+    """Verify the cryptographic attestation of a session SBOM."""
+    sbom_path = SBOM_OUTPUT_DIR / f'{session_id}.cdx.json'
+    if not sbom_path.exists():
+        raise HTTPException(status_code=404, detail=f'Session {session_id} not found')
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    result = verify_sbom(sbom)
+    return {'session_id': session_id, **result}
